@@ -82,15 +82,15 @@ This extension is for:
 
 **Context Menu for Nodes**
 
-![ComfyUI-EnhancedLinksandNodes](https://raw.githubusercontent.com/AEmotionStudio/ComfyUI-EnhancedLinksandNodes/main/images/preview2.gif)
+![ComfyUI-EnhancedLinksandNodes](images/preview2.gif)
 
 **End of Animation Completion Effect**
 
-![ComfyUI-EnhancedLinksandNodes](https://raw.githubusercontent.com/AEmotionStudio/ComfyUI-EnhancedLinksandNodes/main/images/preview3.gif)
+![ComfyUI-EnhancedLinksandNodes](images/preview3.gif)
 
 **Text Animation Tool**
 
-![ComfyUI-EnhancedLinksandNodes](https://raw.githubusercontent.com/AEmotionStudio/ComfyUI-EnhancedLinksandNodes/main/images/preview4.gif)
+![ComfyUI-EnhancedLinksandNodes](images/preview4.gif)
 
 ## 🚀 Installation
 
