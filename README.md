@@ -109,7 +109,7 @@ git clone https://github.com/AEmotionStudio/ComfyUI-EnhancedLinksandNodes.git
 ## 🎮 Usage
 
 ### Link Animation Settings
-- **Animation Style**: Choose from 10 unique animation patterns
+- **Animation Style**: Choose from 9 unique animation patterns
 - **Link Style**: Select from 13 different connection styles
 - **Marker Options**: Customize shape, color, size, and effects
 - **Color Settings**: Configure primary, secondary, and accent colors
