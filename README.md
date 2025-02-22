@@ -82,15 +82,15 @@ This extension is for:
 
 **Context Menu for Nodes**
 
-![ComfyUI-EnhancedLinksandNodes](images/preview2.gif)
+![ComfyUI-EnhancedLinksandNodes](images/preview2.webp)
 
 **End of Animation Completion Effect**
 
-![ComfyUI-EnhancedLinksandNodes](images/preview3.gif)
+![ComfyUI-EnhancedLinksandNodes](images/preview3.webp)
 
 **Text Animation Tool**
 
-![ComfyUI-EnhancedLinksandNodes](images/preview4.gif)
+![ComfyUI-EnhancedLinksandNodes](images/preview4.webp)
 
 ## 🚀 Installation
 
