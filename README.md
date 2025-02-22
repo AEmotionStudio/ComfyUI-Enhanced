@@ -146,7 +146,7 @@ Created by [Æmotion Studio](https://aemotionstudio.org/)
 
 Special thanks to the [ComfyUI](https://github.com/comfyanonymous/ComfyUI) team for creating such an amazing platform and making it possible to build extensions like this one! 💫
 
-### Connect with Us
+### Connect with me
 - [YouTube](https://www.youtube.com/@aemotionstudio/videos)
 - [GitHub](https://github.com/AEmotionStudio/)
 - [Discord](https://discord.gg/UzC9353mfp)
@@ -158,6 +158,6 @@ If you find this project helpful, please consider:
 - ⭐ Starring the repository
 - 📢 Sharing it with others
 - 🛠️ Contributing to its development
-- ☕ [Supporting us on Ko-fi](https://ko-fi.com/aemotionstudio)
+- ☕ [Supporting me on Ko-fi](https://ko-fi.com/aemotionstudio)
 
-For business inquiries or professional support, please contact us through our website or join our Discord server.
+For business inquiries or professional support, please contact me through my website or join my Discord server.
