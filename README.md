@@ -10,7 +10,7 @@ This extension is for:
 - 🎓 **Educators** teaching ComfyUI concepts with enhanced visual aids
 - 🖼️ **Anyone** who wants to add a touch of style to their ComfyUI experience
 
-![ComfyUI-EnhancedLinksandNodes]([your-imgur-link-here](https://imgur.com/a/mhWqXoW).gif)
+![ComfyUI-EnhancedLinksandNodes](https://i.imgur.com/o7hm1Em.gif)
 
 ## ✨ Features
 
