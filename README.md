@@ -2,7 +2,7 @@
 
 A visually stunning extension for ComfyUI that adds beautiful, customizable animations to both links and nodes in your workflow, with a focus on performance and customization. Includes an end-of-render animation and a text visibility tool for nodes. No extra packages are required, works with the latest version of ComfyUI, and should be compatible with most workflows. Larger workflows may experience performance issues, especially if you have a lot of nodes and are using a lower end system.
 
-![ComfyUI-EnhancedLinksandNodes](images/preview.webp)
+![ComfyUI-Enhanced](images/preview.webp)
 
 ## 👥 Who Is This For?
 
@@ -82,15 +82,15 @@ This extension is for:
 
 **Context Menu for Nodes**
 
-![ComfyUI-EnhancedLinksandNodes](images/preview2.webp)
+![ComfyUI-Enhanced](images/preview2.webp)
 
 **End of Animation Completion Effect**
 
-![ComfyUI-EnhancedLinksandNodes](images/preview3.webp)
+![ComfyUI-Enhanced](images/preview3.webp)
 
 **Text Animation Tool**
 
-![ComfyUI-EnhancedLinksandNodes](images/preview4.webp)
+![ComfyUI-Enhanced](images/preview4.webp)
 
 ## 🚀 Installation
 
@@ -101,7 +101,7 @@ cd ComfyUI/custom_nodes/
 
 2. Clone the repository:
 ```bash
-git clone https://github.com/AEmotionStudio/ComfyUI-EnhancedLinksandNodes.git
+git clone https://github.com/AEmotionStudio/ComfyUI-Enhanced.git
 ```
 
 3. Restart ComfyUI
