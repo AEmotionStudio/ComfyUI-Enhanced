@@ -1,0 +1,40 @@
+{
+  "name": "comfyui-enhancedlinksandnodes",
+  "version": "1.0.2",
+  "description": "A visually stunning extension for ComfyUI that adds beautiful, customizable animations to both links and nodes in your workflow.",
+  "type": "module",
+  "scripts": {
+    "dev": "vite build --watch",
+    "build": "vite build",
+    "test": "vitest",
+    "test:run": "vitest run",
+    "test:coverage": "vitest run --coverage",
+    "test:e2e": "playwright test",
+    "type-check": "tsc --noEmit",
+    "lint": "tsc --noEmit && echo 'Type check passed'"
+  },
+  "keywords": [
+    "comfyui",
+    "animation",
+    "visualization",
+    "links",
+    "nodes"
+  ],
+  "author": "Æmotion Studio",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/AEmotionStudio/ComfyUI-EnhancedLinksandNodes"
+  },
+  "packageManager": "pnpm@10.27.0",
+  "devDependencies": {
+    "@playwright/test": "^1.57.0",
+    "@types/node": "^25.0.6",
+    "@vitest/coverage-v8": "^4.0.16",
+    "jsdom": "^27.4.0",
+    "playwright": "^1.57.0",
+    "typescript": "^5.9.3",
+    "vite": "^7.3.1",
+    "vitest": "^4.0.16"
+  }
+}

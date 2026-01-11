@@ -1,0 +1,46 @@
+# Dependencies
+node_modules/
+pnpm-lock.yaml
+
+# Build outputs (TypeScript build goes to js/ but we want to track existing files)
+# Note: js/ is NOT ignored because it contains the runtime files for ComfyUI
+dist/
+
+# Test artifacts
+coverage/
+test-results/
+playwright-report/
+playwright/.cache/
+
+# TypeScript
+*.tsbuildinfo
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.Python
+*.egg-info/
+.eggs/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+pnpm-debug.log*
