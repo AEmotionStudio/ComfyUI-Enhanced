@@ -43,34 +43,46 @@ pnpm run build
 src/
 ├── core/           # Core configuration and types
 │   ├── config.ts   # Constants (PHI, SACRED, defaults)
-│   ├── state.ts    # Animation state management
+│   ├── state.ts    # Animation state factories
 │   ├── timing.ts   # Timing utilities
-│   └── types.ts    # TypeScript type definitions
+│   ├── types.ts    # TypeScript type definitions
+│   └── index.ts    # Central exports
 ├── utils/          # Shared utilities
 │   ├── colors.ts   # Color conversion and manipulation
-│   ├── math.ts     # Math helpers
-│   └── canvas.ts   # Canvas utilities
+│   ├── render.ts   # Canvas drawing helpers
+│   └── index.ts    # Central exports
 ├── renderers/      # Rendering strategies
-│   ├── link-renderers.ts
-│   ├── marker-shapes.ts
-│   └── static-renderers.ts
+│   ├── link-renderers.ts   # 6 link styles
+│   ├── marker-shapes.ts    # 12 marker shapes
+│   └── index.ts    # Central exports
 ├── effects/        # Animation effects
-│   ├── link-animations.ts
-│   ├── node-animations.ts
-│   └── completion.ts
+│   ├── types.ts    # Effect type definitions
+│   ├── node-effects.ts     # 4 node animations
+│   ├── link-effects.ts     # Link flow effects
+│   └── index.ts    # Central exports
 ├── ui/             # UI components
-│   ├── settings.ts
-│   ├── context-menu.ts
-│   └── about-modal.ts
+│   ├── settings.ts         # Settings definitions
+│   ├── settings-utils.ts   # Settings callbacks
+│   ├── context-menu.ts     # Context menu builders
+│   └── index.ts    # Central exports
 └── extensions/     # Entry points for ComfyUI
     ├── link-animations.ts
     └── node-animations.ts
 
 tests/
-├── unit/           # Vitest unit tests
+├── unit/           # Vitest unit tests (126 tests)
+│   ├── colors.test.ts
+│   ├── config.test.ts
+│   ├── timing.test.ts
+│   ├── state.test.ts
+│   ├── renderers.test.ts
+│   ├── effects.test.ts
+│   └── settings.test.ts
 └── e2e/            # Playwright browser tests
+    ├── extension.spec.ts
+    └── visual-regression.spec.ts
 
-js/                 # Build output (consumed by ComfyUI)
+js/                 # Original JS files (legacy, to be replaced)
 ```
 
 ## Development Workflow
