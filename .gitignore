@@ -5,6 +5,9 @@ pnpm-lock.yaml
 # Build outputs (TypeScript build goes to js/ but we want to track existing files)
 # Note: js/ is NOT ignored because it contains the runtime files for ComfyUI
 dist/
+js/backup/
+js/*-*.js
+js/*-*.js.map
 
 # Test artifacts
 coverage/
