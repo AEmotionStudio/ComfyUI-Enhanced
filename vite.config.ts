@@ -11,8 +11,10 @@ export default defineConfig({
             formats: ['es'],
             fileName: (_, entryName) => `${entryName}.js`,
         },
-        outDir: 'js',
-        emptyOutDir: false, // Preserve existing files during transition
+        // Output to dist/ during development to preserve original js/ files
+        // When migration is complete, change to 'js' and remove originals
+        outDir: 'dist',
+        emptyOutDir: true,
         minify: false, // Keep readable for debugging
         sourcemap: true,
         rollupOptions: {
