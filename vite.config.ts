@@ -11,23 +11,23 @@ export default defineConfig({
             formats: ['es'],
             fileName: (_, entryName) => `${entryName}.js`,
         },
-        // Output to dist/ during development to preserve original js/ files
-        // When migration is complete, change to 'js' and remove originals
-        outDir: 'dist',
+        // Output to js/ for ComfyUI consumption
+        outDir: 'js',
         emptyOutDir: true,
         minify: false, // Keep readable for debugging
         sourcemap: true,
         rollupOptions: {
             external: [
                 // ComfyUI imports - these are resolved at runtime
-                /^\.\.\/\.\.\/\.\.\/scripts\/.*/,
+                /^\/scripts\/.*/,
             ],
             output: {
                 // Preserve the import paths for ComfyUI
                 paths: {
-                    '../../../scripts/app.js': '../../../scripts/app.js',
-                    '../../../scripts/api.js': '../../../scripts/api.js',
+                    '/scripts/app.js': '/scripts/app.js',
+                    '/scripts/api.js': '/scripts/api.js',
                 },
+                chunkFileNames: 'chunks/[name]-[hash].js',
             },
         },
     },

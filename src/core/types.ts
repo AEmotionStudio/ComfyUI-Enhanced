@@ -82,6 +82,37 @@ export type MarkerEffect = 'none' | 'pulse' | 'fade' | 'rainbow';
 /** Link animation style (0 = off, 1-9 = animation styles) */
 export type LinkAnimationStyle = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9;
 
+/** Parameters for node animation rendering */
+export interface NodeAnimationParams {
+    animation: {
+        phase: number;
+        intensity: number;
+        direction: number;
+        animSpeed: number;
+        isStaticMode?: boolean;
+        isPaused?: boolean;
+    };
+    quality: {
+        quality: number;
+        animationSize: number;
+        glowIntensity: number;
+    };
+    colors: {
+        primary: Color;
+        secondary: Color;
+        accent: Color;
+        hoverColor: string;
+        showHover: boolean;
+    };
+}
+
+/** Node animation style identifiers */
+export type NodeAnimationStyleName =
+    | 'gentlePulse'
+    | 'neonNexus'
+    | 'cosmicRipple'
+    | 'flowerOfLife';
+
 // =============================================================================
 // Node Types
 // =============================================================================
@@ -206,6 +237,16 @@ export interface ComfyNode {
     particlesOnly?: boolean;
 }
 
+/** Parameters for link animation rendering */
+export interface LinkAnimationParams {
+    phase: number;
+    quality: number;
+    glowIntensity: number;
+    particleDensity: number;
+    direction: number;
+    isStatic: boolean;
+}
+
 /** ComfyUI application object */
 export interface ComfyApp {
     graph: ComfyGraph | null;
@@ -243,7 +284,7 @@ export interface ComfySetting {
 /** ComfyUI settings manager */
 export interface ComfySettings {
     items: ComfySetting[];
-    getSettingValue<T>(id: string, defaultValue: T): T;
+    getSettingValue<T>(id: string, defaultValue?: T): T;
     setSettingValue(id: string, value: unknown): void;
     addSetting(setting: unknown): void;
 }
@@ -251,7 +292,7 @@ export interface ComfySettings {
 /** ComfyUI extension definition */
 export interface ComfyExtension {
     name: string;
-    setup(): Promise<void>;
+    setup(app: ComfyApp): Promise<void>;
 }
 
 /** ComfyUI API object for event listening */

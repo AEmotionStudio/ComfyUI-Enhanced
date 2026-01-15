@@ -158,7 +158,7 @@ export function applyDefaultSettings(
         for (const [key, value] of entries) {
             const setting = app.ui.settings.items.find((s) => s.id === key);
 
-            if (setting && app.ui.settings.getSettingValue(key, undefined) === undefined) {
+            if (setting && app.ui.settings.getSettingValue(key) === undefined) {
                 app.ui.settings.setSettingValue(key, value);
 
                 // Call the callback if it exists to ensure UI updates
@@ -188,7 +188,8 @@ export function applyDefaultSettings(
  * @returns The setting value
  */
 export function getSetting<T>(app: ComfyApp, id: string, defaultValue: T): T {
-    return app.ui.settings.getSettingValue(id, defaultValue);
+    const val = app.ui.settings.getSettingValue(id);
+    return val === undefined ? defaultValue : (val as T);
 }
 
 /**
