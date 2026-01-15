@@ -308,7 +308,8 @@ function getNodeEffect(style) {
 }
 function getSetting(name) {
   const defaultValue = NODE_DEFAULTS[name];
-  return app.ui.settings.getSettingValue(name, defaultValue);
+  const val = app.ui.settings.getSettingValue(name);
+  return val ?? defaultValue;
 }
 const ext = {
   name: "enhanced.node.animations",

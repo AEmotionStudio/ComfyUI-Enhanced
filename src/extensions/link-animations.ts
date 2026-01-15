@@ -31,7 +31,8 @@ import { createPatternDesignerWindow } from '@/utils';
  */
 function getSetting<T>(name: string): T {
     const defaultValue = LINK_DEFAULTS[name as keyof typeof LINK_DEFAULTS];
-    return app.ui.settings.getSettingValue(name, defaultValue) as T;
+    const val = app.ui.settings.getSettingValue(name);
+    return (val ?? defaultValue) as T;
 }
 
 // =============================================================================
