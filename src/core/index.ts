@@ -59,9 +59,12 @@ export type {
     MarkerShape,
     MarkerEffect,
     LinkAnimationStyle,
+    LinkAnimationParams,
 
     // Node types
     NodeAnimationStyle,
+    NodeAnimationParams,
+    NodeAnimationStyleName,
 
     // Geometry types
     Point,

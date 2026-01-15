@@ -1,17 +1,262 @@
-/**
- * Utility functions for ComfyUI Enhanced Animations
- *
- * Includes shared UI components and helper functions.
- */
-
-/**
- * Creates the Pattern Designer Window modal.
- * This is a shared utility used by both link and node animations.
- * Refactored to prevent XSS vulnerabilities by safely injecting styles.
- */
-export const createPatternDesignerWindow = () => {
-    const modal = document.createElement('div');
-    modal.style.cssText = `
+const PHI = 1.618033988749895;
+const ANIMATION = Object.freeze({
+  /** Target frame interval in ms (~60fps) */
+  RAF_THROTTLE: 1e3 / 60,
+  /** Maximum size of particle pool */
+  PARTICLE_POOL_SIZE: 1e3,
+  /** Smoothing factor for delta time */
+  SMOOTH_FACTOR: 0.95,
+  /** Maximum delta time cap (seconds) */
+  MAX_DELTA: 1 / 30,
+  /** Default transition speed for phase animations */
+  TRANSITION_SPEED: 2 * Math.PI / 15,
+  /** Faster transition speed for more responsive animations */
+  FAST_TRANSITION_SPEED: 2 * Math.PI / 10
+});
+const LINK_DEFAULTS = Object.freeze({
+  "🔗 Enhanced Links.Animate": 9,
+  // Classic Flow
+  "🔗 Enhanced Links.Animation.Speed": 1,
+  // Normal speed
+  "🔗 Enhanced Links.Color.Mode": "default",
+  // Default colors
+  "🔗 Enhanced Links.Color.Accent": "#9d00ff",
+  // Purple
+  "🔗 Enhanced Links.Color.Secondary": "#fb00ff",
+  // Pink
+  "🔗 Enhanced Links.Color.Primary": "#ffb300",
+  // Orange
+  "🔗 Enhanced Links.Color.Scheme": "default",
+  // Original colors
+  "🔗 Enhanced Links.Direction": 1,
+  // Forward
+  "🔗 Enhanced Links.Glow.Intensity": 10,
+  // Medium glow
+  "🔗 Enhanced Links.Link.Style": "spline",
+  // Spline style
+  "🔗 Enhanced Links.Marker.Enabled": true,
+  // Markers enabled
+  "🔗 Enhanced Links.Marker.Effects": "none",
+  // No effects
+  "🔗 Enhanced Links.Marker.Glow": 10,
+  // Medium glow
+  "🔗 Enhanced Links.Marker.Color": "#00fff7",
+  // Cyan
+  "🔗 Enhanced Links.Marker.Color.Mode": "default",
+  // Default colors
+  "🔗 Enhanced Links.Marker.Size": 3,
+  // Large size
+  "🔗 Enhanced Links.Marker.Shape": "arrow",
+  // Arrow shape
+  "🔗 Enhanced Links.Particle.Density": 0.5,
+  // Minimal
+  "🔗 Enhanced Links.Quality": 1,
+  // Basic (Fast)
+  "🔗 Enhanced Links.Link.Shadow.Enabled": true,
+  // Link shadows
+  "🔗 Enhanced Links.Marker.Shadow.Enabled": true,
+  // Marker shadows
+  "🔗 Enhanced Links.Thickness": 3,
+  // Medium thickness
+  "🔗 Enhanced Links.UI & Æmotion Studio About": 0,
+  // Closed panel
+  "🔗 Enhanced Links.Static.Mode": false,
+  // Animated mode
+  "🔗 Enhanced Links.Pause.During.Render": true
+  // Pause during render
+});
+const NODE_DEFAULTS = Object.freeze({
+  "📦 Enhanced Nodes.Animate": 1,
+  // Gentle Pulse
+  "📦 Enhanced Nodes.Animation.Glow": 0.5,
+  // Medium glow
+  "📦 Enhanced Nodes.Animation.Size": 1,
+  // Normal size
+  "📦 Enhanced Nodes.Animation.Speed": 1,
+  // Normal speed
+  "📦 Enhanced Nodes.Animations.Enabled": true,
+  // Animations on
+  "📦 Enhanced Nodes.Color.Accent": "#0088ff",
+  // Deep blue
+  "📦 Enhanced Nodes.Color.Mode": "default",
+  // Default colors
+  "📦 Enhanced Nodes.Color.Particle": "#ffff00",
+  // Yellow
+  "📦 Enhanced Nodes.Color.Primary": "#44aaff",
+  // Bright blue
+  "📦 Enhanced Nodes.Color.Scheme": "default",
+  // Original colors
+  "📦 Enhanced Nodes.Color.Secondary": "#88ccff",
+  // Light blue
+  "📦 Enhanced Nodes.Direction": 1,
+  // Forward
+  "📦 Enhanced Nodes.End Animation.Enabled": false,
+  // No end animation
+  "📦 Enhanced Nodes.Glow": 0.5,
+  // Medium glow
+  "📦 Enhanced Nodes.Glow.Show": true,
+  // Show glow
+  "📦 Enhanced Nodes.Intensity": 1,
+  // Normal intensity
+  "📦 Enhanced Nodes.Particle.Color.Mode": "default",
+  // Default particle colors
+  "📦 Enhanced Nodes.Particle.Density": 1,
+  // Normal density
+  "📦 Enhanced Nodes.Particle.Glow": 0.5,
+  // Medium particle glow
+  "📦 Enhanced Nodes.Particle.Intensity": 1,
+  // Normal intensity
+  "📦 Enhanced Nodes.Particle.Show": true,
+  // Show particles
+  "📦 Enhanced Nodes.Particle.Size": 1,
+  // Normal size
+  "📦 Enhanced Nodes.Particle.Speed": 1,
+  // Normal speed
+  "📦 Enhanced Nodes.Quality": 2,
+  // Balanced
+  "📦 Enhanced Nodes.Static.Mode": false,
+  // Animated mode
+  "📦 Enhanced Nodes.Pause.During.Render": true,
+  // Pause during render
+  "📦 Enhanced Nodes.Text.Animation.Enabled": false,
+  // No text animation
+  "📦 Enhanced Nodes.Text.Color": "#00ffff",
+  // Cyan
+  "📦 Enhanced Nodes.UI & Æmotion Studio About": 0
+  // Closed panel
+});
+function createLinkState() {
+  return {
+    isRunning: false,
+    phase: 0,
+    lastFrame: performance.now(),
+    animationFrame: null,
+    particlePool: /* @__PURE__ */ new Map(),
+    activeParticles: /* @__PURE__ */ new Set(),
+    totalTime: 0,
+    speedMultiplier: 1,
+    linkPositions: /* @__PURE__ */ new Map(),
+    lastNodePositions: /* @__PURE__ */ new Map(),
+    staticPhase: Math.PI / 4,
+    lastAnimStyle: null,
+    lastLinkStyle: null,
+    forceUpdate: false,
+    forceRedraw: false,
+    lastRenderState: null,
+    lastSettings: null
+  };
+}
+function createNodeState() {
+  return {
+    isRunning: false,
+    phase: 0,
+    particlePhase: 0,
+    lastFrame: performance.now(),
+    lastRAFTime: 0,
+    animationFrame: null,
+    totalTime: 0,
+    speedMultiplier: 1,
+    staticPhase: Math.PI / 4,
+    forceUpdate: false,
+    forceRedraw: false,
+    lastRenderState: null,
+    nodeEffects: /* @__PURE__ */ new Map(),
+    isAnimating: false,
+    frameSkipCount: 0,
+    maxFrameSkips: 3,
+    lastAnimStyle: null,
+    particlePool: /* @__PURE__ */ new Map(),
+    activeParticles: /* @__PURE__ */ new Set(),
+    playCompletionAnimation: false,
+    completionPhase: 0,
+    completingNodes: /* @__PURE__ */ new Set(),
+    disabledCompletionNodes: /* @__PURE__ */ new Set(),
+    primaryCompletionNode: null
+  };
+}
+function createTimingManager() {
+  const state = {
+    smoothDelta: 0,
+    frameCount: 0,
+    lastTime: performance.now()
+  };
+  return {
+    ...state,
+    get smoothDelta() {
+      return state.smoothDelta;
+    },
+    get frameCount() {
+      return state.frameCount;
+    },
+    get lastTime() {
+      return state.lastTime;
+    },
+    /**
+     * Update timing and return smoothed delta time
+     * @param currentTime - Current timestamp from performance.now()
+     * @returns Smoothed delta time in seconds
+     */
+    update(currentTime) {
+      const rawDelta = Math.min(
+        (currentTime - state.lastTime) / 1e3,
+        ANIMATION.MAX_DELTA
+      );
+      state.lastTime = currentTime;
+      state.frameCount++;
+      state.smoothDelta = state.smoothDelta * ANIMATION.SMOOTH_FACTOR + rawDelta * (1 - ANIMATION.SMOOTH_FACTOR);
+      return state.smoothDelta;
+    },
+    /**
+     * Reset timing state
+     */
+    reset() {
+      state.smoothDelta = 0;
+      state.frameCount = 0;
+      state.lastTime = performance.now();
+    }
+  };
+}
+function validateHexColor(color) {
+  if (!color || typeof color !== "string") return null;
+  const normalized = color.startsWith("#") ? color : `#${color}`;
+  if (!/^#[0-9A-Fa-f]{6}$/i.test(normalized)) return null;
+  return normalized.toLowerCase();
+}
+function hexToRgb(hex) {
+  const validated = validateHexColor(hex);
+  if (!validated) return null;
+  return {
+    r: parseInt(validated.slice(1, 3), 16),
+    g: parseInt(validated.slice(3, 5), 16),
+    b: parseInt(validated.slice(5, 7), 16)
+  };
+}
+function withAlpha(color, alpha) {
+  const validAlpha = Math.max(0, Math.min(1, alpha));
+  if (!color) {
+    return `rgba(0, 255, 255, ${validAlpha})`;
+  }
+  if (typeof color === "string" && color.startsWith("#")) {
+    const rgb = hexToRgb(color);
+    if (rgb) {
+      return `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, ${validAlpha})`;
+    }
+    return `rgba(0, 255, 255, ${validAlpha})`;
+  }
+  if (typeof color === "string" && color.startsWith("hsl(")) {
+    return color.replace(/hsl\((.*)\)/, `hsla($1, ${validAlpha})`);
+  }
+  if (typeof color === "string" && color.startsWith("hsla(")) {
+    return color.replace(/hsla\(([^,]+),([^,]+),([^,]+),[^)]+\)/, `hsla($1,$2,$3, ${validAlpha})`);
+  }
+  if (typeof color === "string" && color.startsWith("rgba(")) {
+    return color.replace(/rgba\(([^,]+),([^,]+),([^,]+),[^)]+\)/, `rgba($1,$2,$3, ${validAlpha})`);
+  }
+  return color;
+}
+const createPatternDesignerWindow = () => {
+  const modal = document.createElement("div");
+  modal.style.cssText = `
         position: fixed;
         left: 50%;
         top: 50%;
@@ -26,9 +271,8 @@ export const createPatternDesignerWindow = () => {
         display: flex;
         flex-direction: column;
     `;
-
-    const titleBar = document.createElement('div');
-    titleBar.style.cssText = `
+  const titleBar = document.createElement("div");
+  titleBar.style.cssText = `
         padding: 10px;
         margin-bottom: 10px;
         cursor: move;
@@ -38,42 +282,34 @@ export const createPatternDesignerWindow = () => {
         justify-content: space-between;
         align-items: center;
     `;
-
-    const title = document.createElement('span');
-    title.textContent = 'About Æmotion Studio';
-    title.style.cssText = `
+  const title = document.createElement("span");
+  title.textContent = "About Æmotion Studio";
+  title.style.cssText = `
         color: #e0e0e0;
         font-weight: bold;
         font-family: 'Orbitron', sans-serif;
     `;
-    titleBar.appendChild(title);
-
-    const closeButton = document.createElement('button');
-    closeButton.textContent = '×';
-    closeButton.style.cssText = `
+  titleBar.appendChild(title);
+  const closeButton = document.createElement("button");
+  closeButton.textContent = "×";
+  closeButton.style.cssText = `
         background: none;
         border: none;
         color: #e0e0e0;
         font-size: 20px;
         cursor: pointer;
     `;
-    closeButton.onclick = () => modal.remove();
-    titleBar.appendChild(closeButton);
-
-    modal.appendChild(titleBar);
-
-    const iframe = document.createElement('iframe');
-    iframe.style.cssText = `
+  closeButton.onclick = () => modal.remove();
+  titleBar.appendChild(closeButton);
+  modal.appendChild(titleBar);
+  const iframe = document.createElement("iframe");
+  iframe.style.cssText = `
         flex: 1;
         border: none;
         border-radius: 4px;
         background-color: #1a1a1a;
     `;
-
-    // Embed the complete HTML content
-    // NOTE: Styles are now injected safely via onload handler instead of template interpolation
-    // to prevent potential XSS vulnerabilities.
-    const htmlContent = `
+  const htmlContent = `
         <html lang="en">
             <head>
             <meta charset="UTF-8" />
@@ -152,7 +388,7 @@ export const createPatternDesignerWindow = () => {
                     -webkit-text-stroke: 2px var(--text-color);
                     color: white;
                     text-shadow: 0 0 10px var(--text-glow);
-                    animation: textGlow 6s ease-in-out infinite;  /* Increased from 4s to 6s */
+                    animation: textGlow 6s ease-in-out infinite; 
                     font-family: 'Orbitron', sans-serif;
                     margin-bottom: 1rem;
                     --text-color: #00ffff;
@@ -183,12 +419,11 @@ export const createPatternDesignerWindow = () => {
                 #ballsContainer {
                     position: relative;
                     width: 100%;
-                    height: 45vh;  /* Increased from 35vh */
-                    margin-top: 0;  /* Reduced from 10px */
+                    height: 45vh;  
+                    margin-top: 0; 
                     perspective: 1000px;
                 }
 
-                /* When any sphere is hovered, pause all orbital animations */
                 #ballsContainer:has(.ball-link:hover) .ball-link {
                     animation-play-state: paused;
                 }
@@ -202,7 +437,7 @@ export const createPatternDesignerWindow = () => {
                     color: inherit;
                     transition: transform 0.3s ease;
                     animation: orbitalMotion 20s linear infinite;
-                    transform-origin: 50% 160px;  /* Reduced from 180px */
+                    transform-origin: 50% 160px;
                 }
 
                 .ball-link:nth-child(1) { animation-delay: 0s; }
@@ -241,7 +476,6 @@ export const createPatternDesignerWindow = () => {
                     animation-play-state: running !important;
                 }
 
-                /* Make hover detection more precise */
                 .sphere {
                     position: absolute;
                     width: 100%;
@@ -251,10 +485,9 @@ export const createPatternDesignerWindow = () => {
                     pointer-events: auto;
                 }
 
-                /* Ensure logos don't interfere with hover */
                 .logo {
                     position: absolute;
-                    top: 53%;  /* Moved from 50% to 52% to shift down slightly */
+                    top: 53%; 
                     left: 50%;
                     transform: translate(-50%, -50%);
                     filter: drop-shadow(0 0 2px rgba(255,255,255,0.5));
@@ -268,13 +501,6 @@ export const createPatternDesignerWindow = () => {
                     100% { transform: translateY(0); }
                 }
 
-                /* Keep hover animation running for all spheres */
-                .sphere-container {
-                    animation: hoverEffect 3s ease-in-out infinite;
-                    animation-play-state: running !important;
-                }
-
-                /* Remove individual sphere sizes since we're handling scale in the animation */
                 .sphere-container.youtube,
                 .sphere-container.github,
                 .sphere-container.discord,
@@ -283,14 +509,12 @@ export const createPatternDesignerWindow = () => {
                     height: 90px;
                 }
 
-                /* Adjust logo sizes to match sphere scaling */
                 .logo svg {
                     width: 30px;
                     height: 30px;
                     transition: all 0.3s ease;
                 }
 
-                /* Add depth effect with shadows */
                 .sphere {
                     transition: all 0.3s ease;
                 }
@@ -308,75 +532,6 @@ export const createPatternDesignerWindow = () => {
                         rgba(255, 255, 255, 0.1) 50%,
                         rgba(0, 0, 0, 0.1) 100%);
                     pointer-events: none;
-                }
-
-                .sphere-container {
-                    width: 90px;
-                    height: 90px;
-                    position: relative;
-                    transform-style: preserve-3d;
-                    animation: hoverEffect 3s ease-in-out infinite;
-                }
-
-                .sphere-container.youtube {
-                    width: 80px;
-                    height: 80px;
-                }
-
-                .sphere-container.github {
-                    width: 90px;
-                    height: 90px;
-                }
-
-                .sphere-container.discord {
-                    width: 100px;
-                    height: 100px;
-                }
-
-                .sphere-container.website {
-                    width: 90px;
-                    height: 90px;
-                }
-
-                .sphere-container.discord .logo svg {
-                    width: 35px;  /* Slightly larger logo for discord */
-                    height: 35px;
-                }
-
-                .sphere-container.youtube .logo svg {
-                    width: 25px;  /* Slightly smaller logo for youtube */
-                    height: 25px;
-                }
-
-                @keyframes hoverEffect {
-                    0% { transform: translateY(0); }
-                    50% { transform: translateY(-10px); }
-                    100% { transform: translateY(0); }
-                }
-
-                .sphere {
-                    position: absolute;
-                    width: 100%;
-                    height: 100%;
-                    border-radius: 50%;
-                    background: radial-gradient(circle at 30% 30%,
-                        rgba(255, 255, 255, 0.8) 0%,
-                        rgba(255, 255, 255, 0.2) 60%,
-                        rgba(255, 255, 255, 0) 100%);
-                    box-shadow: 0 0 20px rgba(255, 255, 255, 0.3);
-                    transform-style: preserve-3d;
-                    backface-visibility: hidden;
-                }
-
-                .sphere::before {
-                    content: '';
-                    position: absolute;
-                    width: 100%;
-                    height: 100%;
-                    border-radius: 50%;
-                    background: inherit;
-                    filter: blur(5px);
-                    transform: translateZ(-1px);
                 }
 
                 .sphere-youtube {
@@ -409,11 +564,6 @@ export const createPatternDesignerWindow = () => {
                         rgba(255, 0, 255, 0.2) 60%,
                         rgba(255, 0, 255, 0) 100%);
                     box-shadow: 0 0 30px rgba(255, 0, 255, 0.3);
-                }
-
-                .logo svg {
-                    width: 40px;  /* Reduced from 40px */
-                    height: 40px;  /* Reduced from 40px */
                 }
 
                 #about {
@@ -451,10 +601,6 @@ export const createPatternDesignerWindow = () => {
                     text-shadow: 0 0 15px #00ffff;
                 }
 
-                #aboutContent p:last-child {
-                    margin-bottom: 0;
-                }
-
                 #rainbowText {
                     font-size: 1rem;
                     margin-top: 10px;
@@ -475,14 +621,12 @@ export const createPatternDesignerWindow = () => {
                     100% { transform: translateY(0); color: #ff00ff; }
                 }
 
-                /* Specific YouTube logo adjustments */
                 .sphere-container.youtube .logo svg {
                     width: 45px;
                     height: 35px;
                     filter: drop-shadow(0 0 2px rgba(255,255,255,0.6));
                 }
 
-                /* Adjust other logos for consistent centering */
                 .sphere-container.github .logo svg,
                 .sphere-container.discord .logo svg,
                 .sphere-container.website .logo svg {
@@ -497,7 +641,6 @@ export const createPatternDesignerWindow = () => {
             <div id="splash">
                 <div id="centerTitle">Æmotion Studio</div>
                 <div id="ballsContainer">
-                    <!-- YouTube Sphere -->
                     <a class="ball-link" href="https://www.youtube.com/@aemotionstudio/videos" target="_blank">
                         <div class="sphere-container youtube">
                             <div class="sphere sphere-youtube"></div>
@@ -508,7 +651,6 @@ export const createPatternDesignerWindow = () => {
                             </div>
                         </div>
                     </a>
-                    <!-- GitHub Sphere -->
                     <a class="ball-link" href="https://github.com/AEmotionStudio/" target="_blank">
                         <div class="sphere-container github">
                             <div class="sphere sphere-github"></div>
@@ -519,7 +661,6 @@ export const createPatternDesignerWindow = () => {
                             </div>
                         </div>
                     </a>
-                    <!-- Discord Sphere -->
                     <a class="ball-link" href="https://discord.gg/UzC9353mfp" target="_blank">
                         <div class="sphere-container discord">
                             <div class="sphere sphere-discord"></div>
@@ -530,7 +671,6 @@ export const createPatternDesignerWindow = () => {
                             </div>
                         </div>
                     </a>
-                    <!-- Website Sphere -->
                     <a class="ball-link" href="https://aemotionstudio.org/" target="_blank">
                         <div class="sphere-container website">
                             <div class="sphere sphere-website"></div>
@@ -576,69 +716,69 @@ export const createPatternDesignerWindow = () => {
                     rainbowElem.innerHTML = "";
                     text.split("").forEach((char, index) => {
                         const span = document.createElement("span");
-                        span.textContent = char === " " ? "\u00A0" : char;
+                        span.textContent = char === " " ? " " : char;
                         span.style.whiteSpace = "pre";
                         span.style.animation = \`rainbowWave 2s infinite\`;
                         span.style.animationDelay = \`\${index * 0.1}s\`;
                         rainbowElem.appendChild(span);
                     });
                 }
-                </script>
+                <\/script>
             </body>
         </html>
     `;
-
-    // Inject styles safely after iframe loads
-    iframe.onload = () => {
-        try {
-            const doc = iframe.contentDocument;
-            if (doc) {
-                const injectedStyles = doc.getElementById('injected-styles');
-                const parentStyles = document.querySelector('style');
-                if (injectedStyles && parentStyles) {
-                    injectedStyles.textContent = parentStyles.textContent;
-                }
-            }
-        } catch (e) {
-            console.error("Error injecting styles into pattern designer window:", e);
+  iframe.onload = () => {
+    try {
+      const doc = iframe.contentDocument;
+      if (doc) {
+        const injectedStyles = doc.getElementById("injected-styles");
+        const parentStyles = document.querySelector("style");
+        if (injectedStyles && parentStyles) {
+          injectedStyles.textContent = parentStyles.textContent;
         }
-    };
-
-    iframe.srcdoc = htmlContent;
-    modal.appendChild(iframe);
-
-    // Make window draggable
-    let isDragging = false;
-    let currentX;
-    let currentY;
-    let initialX;
-    let initialY;
-
-    titleBar.onmousedown = (e) => {
-        isDragging = true;
-
-        const rect = modal.getBoundingClientRect();
-        modal.style.transform = 'none';
-        modal.style.left = rect.left + 'px';
-        modal.style.top = rect.top + 'px';
-
-        initialX = e.clientX - rect.left;
-        initialY = e.clientY - rect.top;
-    };
-
-    document.onmousemove = (e) => {
-        if (isDragging) {
-            e.preventDefault();
-            currentX = e.clientX - initialX;
-            currentY = e.clientY - initialY;
-            modal.style.left = currentX + 'px';
-            modal.style.top = currentY + 'px';
-        }
-    };
-
-    document.onmouseup = () => {
-        isDragging = false;
-    };
-
-    return modal;
+      }
+    } catch (e) {
+      console.error("Error injecting styles into pattern designer window:", e);
+    }
+  };
+  iframe.srcdoc = htmlContent;
+  modal.appendChild(iframe);
+  let isDragging = false;
+  let currentX;
+  let currentY;
+  let initialX;
+  let initialY;
+  titleBar.onmousedown = (e) => {
+    isDragging = true;
+    const rect = modal.getBoundingClientRect();
+    modal.style.transform = "none";
+    modal.style.left = rect.left + "px";
+    modal.style.top = rect.top + "px";
+    initialX = e.clientX - rect.left;
+    initialY = e.clientY - rect.top;
+  };
+  document.onmousemove = (e) => {
+    if (isDragging) {
+      e.preventDefault();
+      currentX = e.clientX - initialX;
+      currentY = e.clientY - initialY;
+      modal.style.left = currentX + "px";
+      modal.style.top = currentY + "px";
+    }
+  };
+  document.onmouseup = () => {
+    isDragging = false;
+  };
+  return modal;
 };
+export {
+  LINK_DEFAULTS as L,
+  NODE_DEFAULTS as N,
+  PHI as P,
+  createTimingManager as a,
+  createPatternDesignerWindow as b,
+  createLinkState as c,
+  createNodeState as d,
+  withAlpha as w
+};
+//# sourceMappingURL=designer-LM43s77A.js.map

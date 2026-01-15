@@ -34,3 +34,6 @@ export {
     hsla,
     getAnimationColors,
 } from './colors';
+
+// Designer utilities
+export { createPatternDesignerWindow } from './designer';

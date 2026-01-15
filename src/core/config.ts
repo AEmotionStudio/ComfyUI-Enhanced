@@ -111,6 +111,7 @@ export const NODE_DEFAULTS = Object.freeze({
     '📦 Enhanced Nodes.Pause.During.Render': true, // Pause during render
     '📦 Enhanced Nodes.Text.Animation.Enabled': false, // No text animation
     '📦 Enhanced Nodes.Text.Color': '#00ffff', // Cyan
+    '📦 Enhanced Nodes.UI & Æmotion Studio About': 0, // Closed panel
 });
 
 /** Combined configuration object for backward compatibility */
