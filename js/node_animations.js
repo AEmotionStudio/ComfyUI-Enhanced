@@ -2206,7 +2206,7 @@ app.registerExtension({
                 submenu: {
                     options: [
                         {
-                            content: State.primaryCompletionNode === node.id ? "❌ Unset as Primary Source" : "✨ Set as Primary Source",
+                            content: "✨ Primary Completion Source",
                             callback: () => {
                                 if (State.primaryCompletionNode === node.id) {
                                     State.primaryCompletionNode = null;
@@ -2219,7 +2219,7 @@ app.registerExtension({
                         },
                         null, // Separator in submenu
                         {
-                            content: State.disabledCompletionNodes.has(node.id) ? "🎆 Enable Animation" : "⭘ Disable Animation",
+                            content: "🎆 Animate on Completion",
                             callback: () => {
                                 if (State.disabledCompletionNodes.has(node.id)) {
                                     State.disabledCompletionNodes.delete(node.id);
