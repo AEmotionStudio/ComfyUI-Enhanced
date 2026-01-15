@@ -20,6 +20,8 @@ export interface MenuOption {
     has_submenu?: boolean;
     /** Whether this is disabled */
     disabled?: boolean;
+    /** Whether this option is checked */
+    checked?: boolean;
     /** Callback when selected */
     callback?: () => void;
     /** Submenu options */
@@ -54,7 +56,8 @@ export function createAnimationStyleMenu(
         has_submenu: true,
         submenu: {
             options: NODE_ANIMATION_OPTIONS.map((option) => ({
-                content: `${currentStyle === option.value ? '✓ ' : ''}${option.text}`,
+                content: option.text,
+                checked: currentStyle === option.value,
                 callback: () => {
                     node.animationStyle = option.value;
                     onStyleChange(option.value);
@@ -72,7 +75,8 @@ export function createParticlesOnlyMenu(
     onToggle: () => void
 ): MenuOption {
     return {
-        content: node.particlesOnly ? '✓ Particles Only' : 'Particles Only',
+        content: '🌠 Particles Only',
+        checked: node.particlesOnly,
         callback: () => {
             node.particlesOnly = !node.particlesOnly;
             onToggle();
@@ -91,9 +95,8 @@ export function createCompletionAnimationMenu(
     const isDisabled = disabledNodes.has(node.id);
 
     return {
-        content: isDisabled
-            ? '❌ Completion Animation Disabled'
-            : '✅ Completion Animation Enabled',
+        content: '🎆 Animate on Completion',
+        checked: !isDisabled,
         callback: () => {
             if (isDisabled) {
                 disabledNodes.delete(node.id);
