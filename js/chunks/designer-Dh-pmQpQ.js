@@ -292,6 +292,7 @@ const createPatternDesignerWindow = () => {
   titleBar.appendChild(title);
   const closeButton = document.createElement("button");
   closeButton.textContent = "×";
+  closeButton.ariaLabel = "Close";
   closeButton.style.cssText = `
         background: none;
         border: none;
@@ -641,7 +642,7 @@ const createPatternDesignerWindow = () => {
             <div id="splash">
                 <div id="centerTitle">Æmotion Studio</div>
                 <div id="ballsContainer">
-                    <a class="ball-link" href="https://www.youtube.com/@aemotionstudio/videos" target="_blank">
+                    <a class="ball-link" href="https://www.youtube.com/@aemotionstudio/videos" target="_blank" aria-label="Visit our YouTube channel">
                         <div class="sphere-container youtube">
                             <div class="sphere sphere-youtube"></div>
                             <div class="logo">
@@ -651,7 +652,7 @@ const createPatternDesignerWindow = () => {
                             </div>
                         </div>
                     </a>
-                    <a class="ball-link" href="https://github.com/AEmotionStudio/" target="_blank">
+                    <a class="ball-link" href="https://github.com/AEmotionStudio/" target="_blank" aria-label="Visit our GitHub profile">
                         <div class="sphere-container github">
                             <div class="sphere sphere-github"></div>
                             <div class="logo">
@@ -661,7 +662,7 @@ const createPatternDesignerWindow = () => {
                             </div>
                         </div>
                     </a>
-                    <a class="ball-link" href="https://discord.gg/UzC9353mfp" target="_blank">
+                    <a class="ball-link" href="https://discord.gg/UzC9353mfp" target="_blank" aria-label="Join our Discord server">
                         <div class="sphere-container discord">
                             <div class="sphere sphere-discord"></div>
                             <div class="logo">
@@ -671,7 +672,7 @@ const createPatternDesignerWindow = () => {
                             </div>
                         </div>
                     </a>
-                    <a class="ball-link" href="https://aemotionstudio.org/" target="_blank">
+                    <a class="ball-link" href="https://aemotionstudio.org/" target="_blank" aria-label="Visit our official website">
                         <div class="sphere-container website">
                             <div class="sphere sphere-website"></div>
                             <div class="logo">
@@ -781,4 +782,4 @@ export {
   createNodeState as d,
   withAlpha as w
 };
-//# sourceMappingURL=designer-LM43s77A.js.map
+//# sourceMappingURL=designer-Dh-pmQpQ.js.map
