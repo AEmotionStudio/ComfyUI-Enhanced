@@ -313,6 +313,7 @@ const createPatternDesignerWindow = () => {
         <html lang="en">
             <head>
             <meta charset="UTF-8" />
+            <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src 'none';" />
             <meta name="viewport" content="width=device-width, initial-scale=1.0" />
             <title>Æmotion Studio</title>
             <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -781,4 +782,4 @@ export {
   createNodeState as d,
   withAlpha as w
 };
-//# sourceMappingURL=designer-LM43s77A.js.map
+//# sourceMappingURL=designer-Dxk52kyW.js.map
