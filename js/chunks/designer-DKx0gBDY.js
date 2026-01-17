@@ -256,6 +256,9 @@ function withAlpha(color, alpha) {
 }
 const createPatternDesignerWindow = () => {
   const modal = document.createElement("div");
+  modal.setAttribute("role", "dialog");
+  modal.setAttribute("aria-modal", "true");
+  modal.setAttribute("aria-labelledby", "designer-title");
   modal.style.cssText = `
         position: fixed;
         left: 50%;
@@ -283,6 +286,7 @@ const createPatternDesignerWindow = () => {
         align-items: center;
     `;
   const title = document.createElement("span");
+  title.id = "designer-title";
   title.textContent = "About Æmotion Studio";
   title.style.cssText = `
         color: #e0e0e0;
@@ -292,6 +296,7 @@ const createPatternDesignerWindow = () => {
   titleBar.appendChild(title);
   const closeButton = document.createElement("button");
   closeButton.textContent = "×";
+  closeButton.setAttribute("aria-label", "Close");
   closeButton.style.cssText = `
         background: none;
         border: none;
@@ -642,7 +647,7 @@ const createPatternDesignerWindow = () => {
             <div id="splash">
                 <div id="centerTitle">Æmotion Studio</div>
                 <div id="ballsContainer">
-                    <a class="ball-link" href="https://www.youtube.com/@aemotionstudio/videos" target="_blank">
+                    <a class="ball-link" href="https://www.youtube.com/@aemotionstudio/videos" target="_blank" aria-label="Visit Æmotion Studio YouTube Channel">
                         <div class="sphere-container youtube">
                             <div class="sphere sphere-youtube"></div>
                             <div class="logo">
@@ -652,7 +657,7 @@ const createPatternDesignerWindow = () => {
                             </div>
                         </div>
                     </a>
-                    <a class="ball-link" href="https://github.com/AEmotionStudio/" target="_blank">
+                    <a class="ball-link" href="https://github.com/AEmotionStudio/" target="_blank" aria-label="Visit Æmotion Studio GitHub Profile">
                         <div class="sphere-container github">
                             <div class="sphere sphere-github"></div>
                             <div class="logo">
@@ -662,7 +667,7 @@ const createPatternDesignerWindow = () => {
                             </div>
                         </div>
                     </a>
-                    <a class="ball-link" href="https://discord.gg/UzC9353mfp" target="_blank">
+                    <a class="ball-link" href="https://discord.gg/UzC9353mfp" target="_blank" aria-label="Join Æmotion Studio Discord Server">
                         <div class="sphere-container discord">
                             <div class="sphere sphere-discord"></div>
                             <div class="logo">
@@ -672,7 +677,7 @@ const createPatternDesignerWindow = () => {
                             </div>
                         </div>
                     </a>
-                    <a class="ball-link" href="https://aemotionstudio.org/" target="_blank">
+                    <a class="ball-link" href="https://aemotionstudio.org/" target="_blank" aria-label="Visit Æmotion Studio Website">
                         <div class="sphere-container website">
                             <div class="sphere sphere-website"></div>
                             <div class="logo">
@@ -782,4 +787,4 @@ export {
   createNodeState as d,
   withAlpha as w
 };
-//# sourceMappingURL=designer-Dxk52kyW.js.map
+//# sourceMappingURL=designer-DKx0gBDY.js.map

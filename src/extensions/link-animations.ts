@@ -46,17 +46,50 @@ const ext: ComfyExtension = {
         const state: LinkState = createLinkState();
         const timing = createTimingManager();
 
+        // Settings Cache
+        const settingsCache = {
+            animStyle: 0,
+            intensity: 0,
+            quality: 0,
+            particleDensity: 0,
+            direction: 0,
+            isStatic: false,
+            markerEnabled: false,
+            markerSize: 0,
+            pauseDuringRender: false,
+            speed: 0,
+        };
+
+        function updateSettingsCache() {
+            settingsCache.animStyle = getSetting<number>('🔗 Enhanced Links.Animate');
+            settingsCache.intensity = getSetting<number>('🔗 Enhanced Links.Glow.Intensity');
+            settingsCache.quality = getSetting<number>('🔗 Enhanced Links.Quality');
+            settingsCache.particleDensity = getSetting<number>('🔗 Enhanced Links.Particle.Density');
+            settingsCache.direction = getSetting<number>('🔗 Enhanced Links.Direction');
+            settingsCache.isStatic = getSetting<boolean>('🔗 Enhanced Links.Static.Mode');
+            settingsCache.markerEnabled = getSetting<boolean>('🔗 Enhanced Links.Marker.Enabled');
+            settingsCache.markerSize = getSetting<number>('🔗 Enhanced Links.Marker.Size');
+            settingsCache.pauseDuringRender = getSetting<boolean>('🔗 Enhanced Links.Pause.During.Render');
+            settingsCache.speed = getSetting<number>('🔗 Enhanced Links.Animation.Speed');
+        }
+
+        // Initial update
+        updateSettingsCache();
+
         /**
          * Main render loop for animations.
          * Driven by the timing manager's RAF loop.
          */
         function renderLoop(timestamp: number) {
+            // Update settings cache once per frame
+            updateSettingsCache();
+
             // Update timing
             timing.update(timestamp);
 
             // Check if animations should be active
-            const isEnabled = getSetting<number>('🔗 Enhanced Links.Animate') > 0;
-            const pauseDuringRender = getSetting<boolean>('🔗 Enhanced Links.Pause.During.Render');
+            const isEnabled = settingsCache.animStyle > 0;
+            const pauseDuringRender = settingsCache.pauseDuringRender;
             const isRendering = app.graph && (app.graph as any).is_rendering; // Accessing internal property
 
             if (!isEnabled || (isRendering && pauseDuringRender)) {
@@ -72,8 +105,8 @@ const ext: ComfyExtension = {
             state.isRunning = true;
 
             // Calculate delta time and phase
-            const speed = getSetting<number>('🔗 Enhanced Links.Animation.Speed');
-            const direction = getSetting<number>('🔗 Enhanced Links.Direction');
+            const speed = settingsCache.speed;
+            const direction = settingsCache.direction;
             const dt = (timestamp - state.lastFrame) / 1000;
             state.lastFrame = timestamp;
 
@@ -128,17 +161,17 @@ const ext: ComfyExtension = {
             );
 
             // Skip if animations disabled
-            const animStyle = getSetting<number>('🔗 Enhanced Links.Animate');
+            const animStyle = settingsCache.animStyle;
             if (animStyle === 0) return;
 
             // Get Settings
-            const intensity = getSetting<number>('🔗 Enhanced Links.Glow.Intensity');
-            const quality = getSetting<number>('🔗 Enhanced Links.Quality');
-            const particleDensity = getSetting<number>('🔗 Enhanced Links.Particle.Density');
-            const direction = getSetting<number>('🔗 Enhanced Links.Direction');
-            const isStatic = getSetting<boolean>('🔗 Enhanced Links.Static.Mode');
-            const markerEnabled = getSetting<boolean>('🔗 Enhanced Links.Marker.Enabled');
-            const markerSize = getSetting<number>('🔗 Enhanced Links.Marker.Size');
+            const intensity = settingsCache.intensity;
+            const quality = settingsCache.quality;
+            const particleDensity = settingsCache.particleDensity;
+            const direction = settingsCache.direction;
+            const isStatic = settingsCache.isStatic;
+            const markerEnabled = settingsCache.markerEnabled;
+            const markerSize = settingsCache.markerSize;
 
             // Colors
             // In a real implementation we would parse the strokeStyle or use our palette settings

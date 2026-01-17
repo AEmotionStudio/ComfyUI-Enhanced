@@ -1,5 +1,5 @@
 import { app } from "/scripts/app.js";
-import { w as withAlpha, P as PHI, c as createLinkState, a as createTimingManager, L as LINK_DEFAULTS, b as createPatternDesignerWindow } from "./chunks/designer-Dxk52kyW.js";
+import { w as withAlpha, P as PHI, c as createLinkState, a as createTimingManager, L as LINK_DEFAULTS, b as createPatternDesignerWindow } from "./chunks/designer-DKx0gBDY.js";
 function calculateFlowPositions(linkLength, phase, density, direction) {
   const spacing = Math.max(30, 60 - density * 20);
   const markerCount = Math.max(1, Math.floor(linkLength / spacing));
@@ -137,41 +137,33 @@ const ext = {
   async setup(app2) {
     const state = createLinkState();
     const timing = createTimingManager();
-
-    // Cache settings to avoid repeated lookups per link per frame
     const settingsCache = {
-        animStyle: 0,
-        intensity: 0,
-        quality: 0,
-        particleDensity: 0,
-        direction: 0,
-        isStatic: 0,
-        markerEnabled: 0,
-        markerSize: 0,
-        pauseDuringRender: 0,
-        speed: 0
+      animStyle: 0,
+      intensity: 0,
+      quality: 0,
+      particleDensity: 0,
+      direction: 0,
+      isStatic: false,
+      markerEnabled: false,
+      markerSize: 0,
+      pauseDuringRender: false,
+      speed: 0
     };
-
     function updateSettingsCache() {
-        settingsCache.animStyle = getSetting("🔗 Enhanced Links.Animate");
-        settingsCache.intensity = getSetting("🔗 Enhanced Links.Glow.Intensity");
-        settingsCache.quality = getSetting("🔗 Enhanced Links.Quality");
-        settingsCache.particleDensity = getSetting("🔗 Enhanced Links.Particle.Density");
-        settingsCache.direction = getSetting("🔗 Enhanced Links.Direction");
-        settingsCache.isStatic = getSetting("🔗 Enhanced Links.Static.Mode");
-        settingsCache.markerEnabled = getSetting("🔗 Enhanced Links.Marker.Enabled");
-        settingsCache.markerSize = getSetting("🔗 Enhanced Links.Marker.Size");
-        settingsCache.pauseDuringRender = getSetting("🔗 Enhanced Links.Pause.During.Render");
-        settingsCache.speed = getSetting("🔗 Enhanced Links.Animation.Speed");
+      settingsCache.animStyle = getSetting("🔗 Enhanced Links.Animate");
+      settingsCache.intensity = getSetting("🔗 Enhanced Links.Glow.Intensity");
+      settingsCache.quality = getSetting("🔗 Enhanced Links.Quality");
+      settingsCache.particleDensity = getSetting("🔗 Enhanced Links.Particle.Density");
+      settingsCache.direction = getSetting("🔗 Enhanced Links.Direction");
+      settingsCache.isStatic = getSetting("🔗 Enhanced Links.Static.Mode");
+      settingsCache.markerEnabled = getSetting("🔗 Enhanced Links.Marker.Enabled");
+      settingsCache.markerSize = getSetting("🔗 Enhanced Links.Marker.Size");
+      settingsCache.pauseDuringRender = getSetting("🔗 Enhanced Links.Pause.During.Render");
+      settingsCache.speed = getSetting("🔗 Enhanced Links.Animation.Speed");
     }
-
-    // Initial population of cache
     updateSettingsCache();
-
     function renderLoop(timestamp) {
-      // Update settings cache once per frame
       updateSettingsCache();
-
       timing.update(timestamp);
       const isEnabled = settingsCache.animStyle > 0;
       const pauseDuringRender = settingsCache.pauseDuringRender;
@@ -210,8 +202,6 @@ const ext = {
         strokeStyle,
         lineWidth
       );
-
-      // Use cached settings
       const animStyle = settingsCache.animStyle;
       if (animStyle === 0) return;
       const intensity = settingsCache.intensity;
@@ -221,7 +211,6 @@ const ext = {
       const isStatic = settingsCache.isStatic;
       const markerEnabled = settingsCache.markerEnabled;
       const markerSize = settingsCache.markerSize;
-
       const color = strokeStyle || "#ffffff";
       const params = {
         phase: state.phase,
