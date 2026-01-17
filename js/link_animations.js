@@ -168,9 +168,13 @@ const ext = {
     // Initial population of cache
     updateSettingsCache();
 
+    let lastSettingsUpdate = 0;
     function renderLoop(timestamp) {
-      // Update settings cache once per frame
-      updateSettingsCache();
+      // Update settings cache every 500ms
+      if (timestamp - lastSettingsUpdate > 500) {
+        updateSettingsCache();
+        lastSettingsUpdate = timestamp;
+      }
 
       timing.update(timestamp);
       const isEnabled = settingsCache.animStyle > 0;
@@ -237,23 +241,40 @@ const ext = {
       const cp1y = y1;
       const cp2x = x2 - cp_dist;
       const cp2y = y2;
-      const getPoint = (t) => {
+
+      // Reusable buffer to avoid allocations in getAngle
+      const _tmpPoint = [0, 0];
+
+      const computeBezier = (t, out) => {
         const invT = 1 - t;
         const invT2 = invT * invT;
         const invT3 = invT2 * invT;
         const t2 = t * t;
         const t3 = t2 * t;
-        const x = invT3 * x1 + 3 * invT2 * t * cp1x + 3 * invT * t2 * cp2x + t3 * x2;
-        const y = invT3 * y1 + 3 * invT2 * t * cp1y + 3 * invT * t2 * cp2y + t3 * y2;
-        return [x, y];
+        out[0] = invT3 * x1 + 3 * invT2 * t * cp1x + 3 * invT * t2 * cp2x + t3 * x2;
+        out[1] = invT3 * y1 + 3 * invT2 * t * cp1y + 3 * invT * t2 * cp2y + t3 * y2;
       };
+
+      const getPoint = (t) => {
+        const p = [0, 0];
+        computeBezier(t, p);
+        return p;
+      };
+
       const getAngle = (t) => {
         const delta = 0.01;
         const t_prev = Math.max(0, t - delta);
         const t_next = Math.min(1, t + delta);
-        const p_prev = getPoint(t_prev);
-        const p_next = getPoint(t_next);
-        return Math.atan2(p_next[1] - p_prev[1], p_next[0] - p_prev[0]);
+
+        computeBezier(t_prev, _tmpPoint);
+        const prevX = _tmpPoint[0];
+        const prevY = _tmpPoint[1];
+
+        computeBezier(t_next, _tmpPoint);
+        const nextX = _tmpPoint[0];
+        const nextY = _tmpPoint[1];
+
+        return Math.atan2(nextY - prevY, nextX - prevX);
       };
       ctx.save();
       if (animStyle === 9) {
