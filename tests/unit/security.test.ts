@@ -22,4 +22,20 @@ describe('Security Enhancements', () => {
             expect(srcdoc).toContain(directive);
         });
     });
+
+    it('should have rel="noopener noreferrer" on all target="_blank" links', () => {
+        const modal = createPatternDesignerWindow();
+        const iframe = modal.querySelector('iframe');
+        expect(iframe).not.toBeNull();
+
+        const srcdoc = iframe!.srcdoc;
+        // Basic check using regex on the HTML string since we can't easily parse the srcdoc inner DOM in this test env without more setup
+        const linksWithTargetBlank = srcdoc.match(/<a[^>]*target="_blank"[^>]*>/g) || [];
+
+        expect(linksWithTargetBlank.length).toBeGreaterThan(0);
+
+        linksWithTargetBlank.forEach(linkTag => {
+            expect(linkTag).toContain('rel="noopener noreferrer"');
+        });
+    });
 });
