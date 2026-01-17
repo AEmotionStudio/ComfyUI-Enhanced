@@ -4,10 +4,11 @@
  */
 
 export const createPatternDesignerWindow = (): HTMLDivElement => {
+    const uniqueId = `designer-title-${Math.random().toString(36).substr(2, 9)}`;
     const modal = document.createElement('div');
     modal.setAttribute('role', 'dialog');
     modal.setAttribute('aria-modal', 'true');
-    modal.setAttribute('aria-labelledby', 'designer-title');
+    modal.setAttribute('aria-labelledby', uniqueId);
     modal.style.cssText = `
         position: fixed;
         left: 50%;
@@ -37,7 +38,7 @@ export const createPatternDesignerWindow = (): HTMLDivElement => {
     `;
 
     const title = document.createElement('span');
-    title.id = 'designer-title';
+    title.id = uniqueId;
     title.textContent = 'About Æmotion Studio';
     title.style.cssText = `
         color: #e0e0e0;

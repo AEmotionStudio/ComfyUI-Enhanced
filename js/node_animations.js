@@ -1,5 +1,5 @@
 import { app } from "/scripts/app.js";
-import { w as withAlpha, d as createNodeState, a as createTimingManager, N as NODE_DEFAULTS, b as createPatternDesignerWindow } from "./chunks/designer-DKx0gBDY.js";
+import { w as withAlpha, d as createNodeState, a as createTimingManager, N as NODE_DEFAULTS, b as createPatternDesignerWindow } from "./chunks/designer-C6DsEfX6.js";
 function isEffectivelyStatic(params) {
   return params.isStaticMode || params.isPaused;
 }

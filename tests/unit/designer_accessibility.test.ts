@@ -7,9 +7,12 @@ describe('Designer Accessibility', () => {
 
         expect(modal.getAttribute('role')).toBe('dialog');
         expect(modal.getAttribute('aria-modal')).toBe('true');
-        expect(modal.getAttribute('aria-labelledby')).toBe('designer-title');
 
-        const title = modal.querySelector('#designer-title');
+        const labelledBy = modal.getAttribute('aria-labelledby');
+        expect(labelledBy).toBeTruthy();
+        expect(labelledBy).toMatch(/^designer-title-/);
+
+        const title = modal.querySelector(`#${labelledBy}`);
         expect(title).not.toBeNull();
     });
 
