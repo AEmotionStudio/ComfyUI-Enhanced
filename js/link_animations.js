@@ -1,5 +1,5 @@
 import { app } from "/scripts/app.js";
-import { w as withAlpha, P as PHI, c as createLinkState, a as createTimingManager, L as LINK_DEFAULTS, b as createPatternDesignerWindow } from "./chunks/designer-BxIA4bDu.js";
+import { w as withAlpha, P as PHI, c as createLinkState, a as createTimingManager, L as LINK_DEFAULTS, b as createPatternDesignerWindow } from "./chunks/designer-CQ6kedQI.js";
 function calculateFlowPositions(linkLength, phase, density, direction) {
   const spacing = Math.max(30, 60 - density * 20);
   const markerCount = Math.max(1, Math.floor(linkLength / spacing));
@@ -137,12 +137,39 @@ const ext = {
   async setup(app2) {
     const state = createLinkState();
     const timing = createTimingManager();
+    const settingsCache = {
+      animStyle: 0,
+      intensity: 0,
+      quality: 0,
+      particleDensity: 0,
+      direction: 0,
+      isStatic: false,
+      markerEnabled: false,
+      markerSize: 0,
+      pauseDuringRender: false,
+      speed: 0,
+      lastUpdate: 0
+    };
+    function updateSettingsCache(timestamp) {
+      if (timestamp - settingsCache.lastUpdate < 500) return;
+      settingsCache.animStyle = getSetting("🔗 Enhanced Links.Animate");
+      settingsCache.intensity = getSetting("🔗 Enhanced Links.Glow.Intensity");
+      settingsCache.quality = getSetting("🔗 Enhanced Links.Quality");
+      settingsCache.particleDensity = getSetting("🔗 Enhanced Links.Particle.Density");
+      settingsCache.direction = getSetting("🔗 Enhanced Links.Direction");
+      settingsCache.isStatic = getSetting("🔗 Enhanced Links.Static.Mode");
+      settingsCache.markerEnabled = getSetting("🔗 Enhanced Links.Marker.Enabled");
+      settingsCache.markerSize = getSetting("🔗 Enhanced Links.Marker.Size");
+      settingsCache.pauseDuringRender = getSetting("🔗 Enhanced Links.Pause.During.Render");
+      settingsCache.speed = getSetting("🔗 Enhanced Links.Animation.Speed");
+      settingsCache.lastUpdate = timestamp;
+    }
     function renderLoop(timestamp) {
       timing.update(timestamp);
-      const isEnabled = getSetting("🔗 Enhanced Links.Animate") > 0;
-      const pauseDuringRender = getSetting("🔗 Enhanced Links.Pause.During.Render");
+      updateSettingsCache(timestamp);
+      const isEnabled = settingsCache.animStyle > 0;
       const isRendering = app2.graph && app2.graph.is_rendering;
-      if (!isEnabled || isRendering && pauseDuringRender) {
+      if (!isEnabled || isRendering && settingsCache.pauseDuringRender) {
         if (state.isRunning) {
           state.isRunning = false;
           app2.graph?.setDirtyCanvas(true, true);
@@ -151,16 +178,15 @@ const ext = {
         return;
       }
       state.isRunning = true;
-      const speed = getSetting("🔗 Enhanced Links.Animation.Speed");
-      const direction = getSetting("🔗 Enhanced Links.Direction");
       const dt = (timestamp - state.lastFrame) / 1e3;
       state.lastFrame = timestamp;
-      state.phase += dt * speed * direction;
+      state.phase += dt * settingsCache.speed * settingsCache.direction;
       app2.graph?.setDirtyCanvas(true, false);
       requestAnimationFrame(renderLoop);
     }
     requestAnimationFrame(renderLoop);
     const originalDrawLink = LGraphCanvas.prototype.drawLink;
+    const _pointBuffer = [0, 0];
     LGraphCanvas.prototype.drawLink = function(link_id, ctx, x1, y1, x2, y2, link_index, skip_border, fillStyle, strokeStyle, lineWidth) {
       originalDrawLink.call(
         this,
@@ -176,23 +202,15 @@ const ext = {
         strokeStyle,
         lineWidth
       );
-      const animStyle = getSetting("🔗 Enhanced Links.Animate");
-      if (animStyle === 0) return;
-      const intensity = getSetting("🔗 Enhanced Links.Glow.Intensity");
-      const quality = getSetting("🔗 Enhanced Links.Quality");
-      const particleDensity = getSetting("🔗 Enhanced Links.Particle.Density");
-      const direction = getSetting("🔗 Enhanced Links.Direction");
-      const isStatic = getSetting("🔗 Enhanced Links.Static.Mode");
-      const markerEnabled = getSetting("🔗 Enhanced Links.Marker.Enabled");
-      const markerSize = getSetting("🔗 Enhanced Links.Marker.Size");
+      if (settingsCache.animStyle === 0) return;
       const color = strokeStyle || "#ffffff";
       const params = {
         phase: state.phase,
-        quality,
-        glowIntensity: intensity / 10,
-        particleDensity,
-        direction,
-        isStatic
+        quality: settingsCache.quality,
+        glowIntensity: settingsCache.intensity / 10,
+        particleDensity: settingsCache.particleDensity,
+        direction: settingsCache.direction,
+        isStatic: settingsCache.isStatic
       };
       const dist = Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2));
       const cp_dist = dist * 0.25;
@@ -206,20 +224,24 @@ const ext = {
         const invT3 = invT2 * invT;
         const t2 = t * t;
         const t3 = t2 * t;
-        const x = invT3 * x1 + 3 * invT2 * t * cp1x + 3 * invT * t2 * cp2x + t3 * x2;
-        const y = invT3 * y1 + 3 * invT2 * t * cp1y + 3 * invT * t2 * cp2y + t3 * y2;
-        return [x, y];
+        _pointBuffer[0] = invT3 * x1 + 3 * invT2 * t * cp1x + 3 * invT * t2 * cp2x + t3 * x2;
+        _pointBuffer[1] = invT3 * y1 + 3 * invT2 * t * cp1y + 3 * invT * t2 * cp2y + t3 * y2;
+        return _pointBuffer;
       };
       const getAngle = (t) => {
         const delta = 0.01;
         const t_prev = Math.max(0, t - delta);
         const t_next = Math.min(1, t + delta);
-        const p_prev = getPoint(t_prev);
-        const p_next = getPoint(t_next);
-        return Math.atan2(p_next[1] - p_prev[1], p_next[0] - p_prev[0]);
+        getPoint(t_prev);
+        const prevX = _pointBuffer[0];
+        const prevY = _pointBuffer[1];
+        getPoint(t_next);
+        const nextX = _pointBuffer[0];
+        const nextY = _pointBuffer[1];
+        return Math.atan2(nextY - prevY, nextX - prevX);
       };
       ctx.save();
-      if (animStyle === 9) {
+      if (settingsCache.animStyle === 9) {
         LinkEffects.classicFlow(
           ctx,
           getPoint,
@@ -227,9 +249,9 @@ const ext = {
           dist,
           params,
           color,
-          markerEnabled ? markerSize : 0
+          settingsCache.markerEnabled ? settingsCache.markerSize : 0
         );
-      } else if (animStyle === 8) {
+      } else if (settingsCache.animStyle === 8) {
         LinkEffects.energySurge(
           ctx,
           getPoint,
@@ -238,7 +260,7 @@ const ext = {
           "#ffffff"
           // Secondary color placeholder
         );
-      } else if (animStyle === 7) {
+      } else if (settingsCache.animStyle === 7) {
         LinkEffects.quantumFlow(
           ctx,
           getPoint,

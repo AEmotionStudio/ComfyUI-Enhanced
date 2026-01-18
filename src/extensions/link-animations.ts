@@ -46,6 +46,39 @@ const ext: ComfyExtension = {
         const state: LinkState = createLinkState();
         const timing = createTimingManager();
 
+    // Cache settings to avoid repeated lookups per link per frame
+    const settingsCache = {
+        animStyle: 0,
+        intensity: 0,
+        quality: 0,
+        particleDensity: 0,
+        direction: 0,
+        isStatic: false,
+        markerEnabled: false,
+        markerSize: 0,
+        pauseDuringRender: false,
+        speed: 0,
+        lastUpdate: 0
+    };
+
+    function updateSettingsCache(timestamp: number) {
+        // Update cache every 500ms
+        if (timestamp - settingsCache.lastUpdate < 500) return;
+
+        settingsCache.animStyle = getSetting('🔗 Enhanced Links.Animate');
+        settingsCache.intensity = getSetting('🔗 Enhanced Links.Glow.Intensity');
+        settingsCache.quality = getSetting('🔗 Enhanced Links.Quality');
+        settingsCache.particleDensity = getSetting('🔗 Enhanced Links.Particle.Density');
+        settingsCache.direction = getSetting('🔗 Enhanced Links.Direction');
+        settingsCache.isStatic = getSetting('🔗 Enhanced Links.Static.Mode');
+        settingsCache.markerEnabled = getSetting('🔗 Enhanced Links.Marker.Enabled');
+        settingsCache.markerSize = getSetting('🔗 Enhanced Links.Marker.Size');
+        settingsCache.pauseDuringRender = getSetting('🔗 Enhanced Links.Pause.During.Render');
+        settingsCache.speed = getSetting('🔗 Enhanced Links.Animation.Speed');
+
+        settingsCache.lastUpdate = timestamp;
+    }
+
         /**
          * Main render loop for animations.
          * Driven by the timing manager's RAF loop.
@@ -53,13 +86,13 @@ const ext: ComfyExtension = {
         function renderLoop(timestamp: number) {
             // Update timing
             timing.update(timestamp);
+        updateSettingsCache(timestamp);
 
             // Check if animations should be active
-            const isEnabled = getSetting<number>('🔗 Enhanced Links.Animate') > 0;
-            const pauseDuringRender = getSetting<boolean>('🔗 Enhanced Links.Pause.During.Render');
+        const isEnabled = settingsCache.animStyle > 0;
             const isRendering = app.graph && (app.graph as any).is_rendering; // Accessing internal property
 
-            if (!isEnabled || (isRendering && pauseDuringRender)) {
+        if (!isEnabled || (isRendering && settingsCache.pauseDuringRender)) {
                 if (state.isRunning) {
                     state.isRunning = false;
                     // Force one last redraw to clear/reset state if needed
@@ -72,13 +105,11 @@ const ext: ComfyExtension = {
             state.isRunning = true;
 
             // Calculate delta time and phase
-            const speed = getSetting<number>('🔗 Enhanced Links.Animation.Speed');
-            const direction = getSetting<number>('🔗 Enhanced Links.Direction');
             const dt = (timestamp - state.lastFrame) / 1000;
             state.lastFrame = timestamp;
 
             // Update phase
-            state.phase += dt * speed * direction;
+        state.phase += dt * settingsCache.speed * settingsCache.direction;
 
             // Force redraw of canvas to trigger drawLink overrides
             // We use setDirtyCanvas(true, false) to redraw canvas but not recompute execution order
@@ -95,6 +126,9 @@ const ext: ComfyExtension = {
          * This wraps the original LiteGraph execution.
          */
         const originalDrawLink = LGraphCanvas.prototype.drawLink;
+
+        // Reusable point buffer to avoid allocation
+        const _pointBuffer: [number, number] = [0, 0];
 
         LGraphCanvas.prototype.drawLink = function (
             link_id: number,
@@ -128,17 +162,7 @@ const ext: ComfyExtension = {
             );
 
             // Skip if animations disabled
-            const animStyle = getSetting<number>('🔗 Enhanced Links.Animate');
-            if (animStyle === 0) return;
-
-            // Get Settings
-            const intensity = getSetting<number>('🔗 Enhanced Links.Glow.Intensity');
-            const quality = getSetting<number>('🔗 Enhanced Links.Quality');
-            const particleDensity = getSetting<number>('🔗 Enhanced Links.Particle.Density');
-            const direction = getSetting<number>('🔗 Enhanced Links.Direction');
-            const isStatic = getSetting<boolean>('🔗 Enhanced Links.Static.Mode');
-            const markerEnabled = getSetting<boolean>('🔗 Enhanced Links.Marker.Enabled');
-            const markerSize = getSetting<number>('🔗 Enhanced Links.Marker.Size');
+            if (settingsCache.animStyle === 0) return;
 
             // Colors
             // In a real implementation we would parse the strokeStyle or use our palette settings
@@ -149,11 +173,11 @@ const ext: ComfyExtension = {
             // Prepare animation params
             const params: LinkAnimationParams = {
                 phase: state.phase,
-                quality,
-                glowIntensity: intensity / 10,
-                particleDensity,
-                direction,
-                isStatic
+                quality: settingsCache.quality,
+                glowIntensity: settingsCache.intensity / 10,
+                particleDensity: settingsCache.particleDensity,
+                direction: settingsCache.direction,
+                isStatic: settingsCache.isStatic
             };
 
             // Calculate Path (Simplified for now - assumes Bezier as LiteGraph default)
@@ -178,18 +202,26 @@ const ext: ComfyExtension = {
                 const t2 = t * t;
                 const t3 = t2 * t;
 
-                const x = invT3 * x1 + 3 * invT2 * t * cp1x + 3 * invT * t2 * cp2x + t3 * x2;
-                const y = invT3 * y1 + 3 * invT2 * t * cp1y + 3 * invT * t2 * cp2y + t3 * y2;
-                return [x, y] as [number, number];
+                _pointBuffer[0] = invT3 * x1 + 3 * invT2 * t * cp1x + 3 * invT * t2 * cp2x + t3 * x2;
+                _pointBuffer[1] = invT3 * y1 + 3 * invT2 * t * cp1y + 3 * invT * t2 * cp2y + t3 * y2;
+                return _pointBuffer;
             };
 
             const getAngle = (t: number) => {
                 const delta = 0.01;
                 const t_prev = Math.max(0, t - delta);
                 const t_next = Math.min(1, t + delta);
-                const p_prev = getPoint(t_prev);
-                const p_next = getPoint(t_next);
-                return Math.atan2(p_next[1] - p_prev[1], p_next[0] - p_prev[0]);
+
+                // Capture values to avoid buffer overwrite
+                getPoint(t_prev);
+                const prevX = _pointBuffer[0];
+                const prevY = _pointBuffer[1];
+
+                getPoint(t_next);
+                const nextX = _pointBuffer[0];
+                const nextY = _pointBuffer[1];
+
+                return Math.atan2(nextY - prevY, nextX - prevX);
             };
 
             // Render based on selected animation style
@@ -201,7 +233,7 @@ const ext: ComfyExtension = {
             // Ensure we're drawing on top
             // ctx.globalCompositeOperation = 'screen'; // Optional: for glowy look
 
-            if (animStyle === 9) { // Classic Flow
+            if (settingsCache.animStyle === 9) { // Classic Flow
                 LinkEffects.classicFlow(
                     ctx,
                     getPoint,
@@ -209,9 +241,9 @@ const ext: ComfyExtension = {
                     dist,
                     params,
                     color,
-                    markerEnabled ? markerSize : 0
+                    settingsCache.markerEnabled ? settingsCache.markerSize : 0
                 );
-            } else if (animStyle === 8) { // Energy Surge
+            } else if (settingsCache.animStyle === 8) { // Energy Surge
                 LinkEffects.energySurge(
                     ctx,
                     getPoint,
@@ -219,7 +251,7 @@ const ext: ComfyExtension = {
                     color,
                     '#ffffff' // Secondary color placeholder
                 );
-            } else if (animStyle === 7) { // Quantum Flow
+            } else if (settingsCache.animStyle === 7) { // Quantum Flow
                 LinkEffects.quantumFlow(
                     ctx,
                     getPoint,

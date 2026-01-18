@@ -255,10 +255,13 @@ function withAlpha(color, alpha) {
   return color;
 }
 const createPatternDesignerWindow = () => {
+  const modalId = `designer-window-${Date.now()}`;
+  const titleId = `designer-title-${Date.now()}`;
   const modal = document.createElement("div");
+  modal.id = modalId;
   modal.setAttribute("role", "dialog");
   modal.setAttribute("aria-modal", "true");
-  modal.setAttribute("aria-labelledby", "designer-title");
+  modal.setAttribute("aria-labelledby", titleId);
   modal.style.cssText = `
         position: fixed;
         left: 50%;
@@ -286,7 +289,7 @@ const createPatternDesignerWindow = () => {
         align-items: center;
     `;
   const title = document.createElement("span");
-  title.id = "designer-title";
+  title.id = titleId;
   title.textContent = "About Æmotion Studio";
   title.style.cssText = `
         color: #e0e0e0;
@@ -809,4 +812,4 @@ export {
   createNodeState as d,
   withAlpha as w
 };
-//# sourceMappingURL=designer-BxIA4bDu.js.map
+//# sourceMappingURL=designer-CQ6kedQI.js.map
