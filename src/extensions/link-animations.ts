@@ -34,6 +34,46 @@ function getSetting<T>(name: string): T {
     return app.ui.settings.getSettingValue(name, defaultValue) as T;
 }
 
+interface SettingsCache {
+    animStyle: number;
+    intensity: number;
+    quality: number;
+    particleDensity: number;
+    direction: number;
+    isStatic: boolean;
+    markerEnabled: boolean;
+    markerSize: number;
+    pauseDuringRender: boolean;
+    speed: number;
+}
+
+// Cache settings to avoid repeated lookups per link per frame
+const settingsCache: SettingsCache = {
+    animStyle: 0,
+    intensity: 0,
+    quality: 0,
+    particleDensity: 0,
+    direction: 0,
+    isStatic: false,
+    markerEnabled: false,
+    markerSize: 0,
+    pauseDuringRender: false,
+    speed: 0
+};
+
+function updateSettingsCache() {
+    settingsCache.animStyle = getSetting<number>('🔗 Enhanced Links.Animate');
+    settingsCache.intensity = getSetting<number>('🔗 Enhanced Links.Glow.Intensity');
+    settingsCache.quality = getSetting<number>('🔗 Enhanced Links.Quality');
+    settingsCache.particleDensity = getSetting<number>('🔗 Enhanced Links.Particle.Density');
+    settingsCache.direction = getSetting<number>('🔗 Enhanced Links.Direction');
+    settingsCache.isStatic = getSetting<boolean>('🔗 Enhanced Links.Static.Mode');
+    settingsCache.markerEnabled = getSetting<boolean>('🔗 Enhanced Links.Marker.Enabled');
+    settingsCache.markerSize = getSetting<number>('🔗 Enhanced Links.Marker.Size');
+    settingsCache.pauseDuringRender = getSetting<boolean>('🔗 Enhanced Links.Pause.During.Render');
+    settingsCache.speed = getSetting<number>('🔗 Enhanced Links.Animation.Speed');
+}
+
 // =============================================================================
 // Extension Implementation
 // =============================================================================
@@ -46,17 +86,27 @@ const ext: ComfyExtension = {
         const state: LinkState = createLinkState();
         const timing = createTimingManager();
 
+        // Initial population of cache
+        updateSettingsCache();
+        let lastSettingsUpdate = 0;
+
         /**
          * Main render loop for animations.
          * Driven by the timing manager's RAF loop.
          */
         function renderLoop(timestamp: number) {
+            // Update settings cache every 500ms
+            if (timestamp - lastSettingsUpdate > 500) {
+                updateSettingsCache();
+                lastSettingsUpdate = timestamp;
+            }
+
             // Update timing
             timing.update(timestamp);
 
             // Check if animations should be active
-            const isEnabled = getSetting<number>('🔗 Enhanced Links.Animate') > 0;
-            const pauseDuringRender = getSetting<boolean>('🔗 Enhanced Links.Pause.During.Render');
+            const isEnabled = settingsCache.animStyle > 0;
+            const pauseDuringRender = settingsCache.pauseDuringRender;
             const isRendering = app.graph && (app.graph as any).is_rendering; // Accessing internal property
 
             if (!isEnabled || (isRendering && pauseDuringRender)) {
@@ -72,8 +122,8 @@ const ext: ComfyExtension = {
             state.isRunning = true;
 
             // Calculate delta time and phase
-            const speed = getSetting<number>('🔗 Enhanced Links.Animation.Speed');
-            const direction = getSetting<number>('🔗 Enhanced Links.Direction');
+            const speed = settingsCache.speed;
+            const direction = settingsCache.direction;
             const dt = (timestamp - state.lastFrame) / 1000;
             state.lastFrame = timestamp;
 
@@ -128,17 +178,17 @@ const ext: ComfyExtension = {
             );
 
             // Skip if animations disabled
-            const animStyle = getSetting<number>('🔗 Enhanced Links.Animate');
+            const animStyle = settingsCache.animStyle;
             if (animStyle === 0) return;
 
             // Get Settings
-            const intensity = getSetting<number>('🔗 Enhanced Links.Glow.Intensity');
-            const quality = getSetting<number>('🔗 Enhanced Links.Quality');
-            const particleDensity = getSetting<number>('🔗 Enhanced Links.Particle.Density');
-            const direction = getSetting<number>('🔗 Enhanced Links.Direction');
-            const isStatic = getSetting<boolean>('🔗 Enhanced Links.Static.Mode');
-            const markerEnabled = getSetting<boolean>('🔗 Enhanced Links.Marker.Enabled');
-            const markerSize = getSetting<number>('🔗 Enhanced Links.Marker.Size');
+            const intensity = settingsCache.intensity;
+            const quality = settingsCache.quality;
+            const particleDensity = settingsCache.particleDensity;
+            const direction = settingsCache.direction;
+            const isStatic = settingsCache.isStatic;
+            const markerEnabled = settingsCache.markerEnabled;
+            const markerSize = settingsCache.markerSize;
 
             // Colors
             // In a real implementation we would parse the strokeStyle or use our palette settings
@@ -171,25 +221,40 @@ const ext: ComfyExtension = {
             const cp2x = x2 - cp_dist;
             const cp2y = y2;
 
-            const getPoint = (t: number) => {
+            // Reusable buffer to avoid allocations in getAngle
+            const _tmpPoint: [number, number] = [0, 0];
+
+            const computeBezier = (t: number, out: [number, number]) => {
                 const invT = 1 - t;
                 const invT2 = invT * invT;
                 const invT3 = invT2 * invT;
                 const t2 = t * t;
                 const t3 = t2 * t;
 
-                const x = invT3 * x1 + 3 * invT2 * t * cp1x + 3 * invT * t2 * cp2x + t3 * x2;
-                const y = invT3 * y1 + 3 * invT2 * t * cp1y + 3 * invT * t2 * cp2y + t3 * y2;
-                return [x, y] as [number, number];
+                out[0] = invT3 * x1 + 3 * invT2 * t * cp1x + 3 * invT * t2 * cp2x + t3 * x2;
+                out[1] = invT3 * y1 + 3 * invT2 * t * cp1y + 3 * invT * t2 * cp2y + t3 * y2;
+            };
+
+            const getPoint = (t: number) => {
+                const p: [number, number] = [0, 0];
+                computeBezier(t, p);
+                return p;
             };
 
             const getAngle = (t: number) => {
                 const delta = 0.01;
                 const t_prev = Math.max(0, t - delta);
                 const t_next = Math.min(1, t + delta);
-                const p_prev = getPoint(t_prev);
-                const p_next = getPoint(t_next);
-                return Math.atan2(p_next[1] - p_prev[1], p_next[0] - p_prev[0]);
+
+                computeBezier(t_prev, _tmpPoint);
+                const prevX = _tmpPoint[0];
+                const prevY = _tmpPoint[1];
+
+                computeBezier(t_next, _tmpPoint);
+                const nextX = _tmpPoint[0];
+                const nextY = _tmpPoint[1];
+
+                return Math.atan2(nextY - prevY, nextX - prevX);
             };
 
             // Render based on selected animation style
