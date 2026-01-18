@@ -22,4 +22,25 @@ describe('Security Enhancements', () => {
             expect(srcdoc).toContain(directive);
         });
     });
+
+    it('should prevent reverse tabnabbing on external links', () => {
+        const modal = createPatternDesignerWindow();
+        const iframe = modal.querySelector('iframe');
+        expect(iframe).not.toBeNull();
+
+        const srcdoc = iframe!.srcdoc;
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(srcdoc, 'text/html');
+        const externalLinks = doc.querySelectorAll('a[target="_blank"]');
+
+        // Should have some links to test
+        expect(externalLinks.length).toBeGreaterThan(0);
+
+        externalLinks.forEach(link => {
+            const rel = link.getAttribute('rel');
+            expect(rel).not.toBeNull();
+            expect(rel).toContain('noopener');
+            expect(rel).toContain('noreferrer');
+        });
+    });
 });
