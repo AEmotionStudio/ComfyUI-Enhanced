@@ -5,6 +5,9 @@
 
 export const createPatternDesignerWindow = (): HTMLDivElement => {
     const modal = document.createElement('div');
+    modal.setAttribute('role', 'dialog');
+    modal.setAttribute('aria-modal', 'true');
+    modal.setAttribute('aria-labelledby', 'designer-title');
     modal.style.cssText = `
         position: fixed;
         left: 50%;
@@ -34,6 +37,7 @@ export const createPatternDesignerWindow = (): HTMLDivElement => {
     `;
 
     const title = document.createElement('span');
+    title.id = 'designer-title';
     title.textContent = 'About Æmotion Studio';
     title.style.cssText = `
         color: #e0e0e0;
@@ -44,13 +48,38 @@ export const createPatternDesignerWindow = (): HTMLDivElement => {
 
     const closeButton = document.createElement('button');
     closeButton.textContent = '×';
+    closeButton.setAttribute('aria-label', 'Close pattern designer');
     closeButton.style.cssText = `
         background: none;
         border: none;
         color: #e0e0e0;
-        font-size: 20px;
+        font-size: 28px;
+        line-height: 1;
         cursor: pointer;
+        padding: 0 8px;
+        border-radius: 4px;
+        transition: color 0.2s, background-color 0.2s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
     `;
+
+    closeButton.onmouseenter = () => {
+        closeButton.style.color = '#ffffff';
+        closeButton.style.backgroundColor = 'rgba(255, 255, 255, 0.1)';
+    };
+    closeButton.onmouseleave = () => {
+        closeButton.style.color = '#e0e0e0';
+        closeButton.style.backgroundColor = 'transparent';
+    };
+    closeButton.onfocus = () => {
+        closeButton.style.outline = '2px solid #00ffff';
+        closeButton.style.outlineOffset = '2px';
+    };
+    closeButton.onblur = () => {
+        closeButton.style.outline = 'none';
+    };
+
     closeButton.onclick = () => modal.remove();
     titleBar.appendChild(closeButton);
 
