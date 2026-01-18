@@ -148,7 +148,8 @@ const ext = {
       markerSize: 0,
       pauseDuringRender: false,
       speed: 0,
-      lastUpdate: 0
+      lastUpdate: -500
+      // Force immediate update on first frame
     };
     function updateSettingsCache(timestamp) {
       if (timestamp - settingsCache.lastUpdate < 500) return;
@@ -218,26 +219,30 @@ const ext = {
       const cp1y = y1;
       const cp2x = x2 - cp_dist;
       const cp2y = y2;
-      const getPoint = (t) => {
+      const computeBezier = (t, out) => {
         const invT = 1 - t;
         const invT2 = invT * invT;
         const invT3 = invT2 * invT;
         const t2 = t * t;
         const t3 = t2 * t;
-        _pointBuffer[0] = invT3 * x1 + 3 * invT2 * t * cp1x + 3 * invT * t2 * cp2x + t3 * x2;
-        _pointBuffer[1] = invT3 * y1 + 3 * invT2 * t * cp1y + 3 * invT * t2 * cp2y + t3 * y2;
-        return _pointBuffer;
+        out[0] = invT3 * x1 + 3 * invT2 * t * cp1x + 3 * invT * t2 * cp2x + t3 * x2;
+        out[1] = invT3 * y1 + 3 * invT2 * t * cp1y + 3 * invT * t2 * cp2y + t3 * y2;
+        return out;
       };
+      const getPoint = (t) => {
+        return computeBezier(t, _pointBuffer);
+      };
+      const _angleBuffer = [0, 0];
       const getAngle = (t) => {
         const delta = 0.01;
         const t_prev = Math.max(0, t - delta);
         const t_next = Math.min(1, t + delta);
-        getPoint(t_prev);
-        const prevX = _pointBuffer[0];
-        const prevY = _pointBuffer[1];
-        getPoint(t_next);
-        const nextX = _pointBuffer[0];
-        const nextY = _pointBuffer[1];
+        computeBezier(t_prev, _angleBuffer);
+        const prevX = _angleBuffer[0];
+        const prevY = _angleBuffer[1];
+        computeBezier(t_next, _angleBuffer);
+        const nextX = _angleBuffer[0];
+        const nextY = _angleBuffer[1];
         return Math.atan2(nextY - prevY, nextX - prevX);
       };
       ctx.save();
