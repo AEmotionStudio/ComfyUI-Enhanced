@@ -1,5 +1,5 @@
 import { app } from "/scripts/app.js";
-import { w as withAlpha, P as PHI, c as createLinkState, a as createTimingManager, L as LINK_DEFAULTS, b as createPatternDesignerWindow } from "./chunks/designer-DlOy_QSa.js";
+import { w as withAlpha, P as PHI, c as createLinkState, a as createTimingManager, L as LINK_DEFAULTS, b as createPatternDesignerWindow } from "./chunks/designer-BGgakjad.js";
 function calculateFlowPositions(linkLength, phase, density, direction) {
   const spacing = Math.max(30, 60 - density * 20);
   const markerCount = Math.max(1, Math.floor(linkLength / spacing));

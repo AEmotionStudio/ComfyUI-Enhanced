@@ -3,6 +3,22 @@
  * Ported from JS with XSS security fixes.
  */
 
+// Generate a random nonce for CSP
+const generateNonce = (): string => {
+    if (typeof window !== 'undefined' && window.crypto) {
+        if (typeof window.crypto.randomUUID === 'function') {
+            return window.crypto.randomUUID();
+        }
+        if (typeof window.crypto.getRandomValues === 'function') {
+            const array = new Uint8Array(16);
+            window.crypto.getRandomValues(array);
+            return Array.from(array, (byte) => byte.toString(16).padStart(2, '0')).join('');
+        }
+    }
+    // Fail securely if no crypto API is available
+    throw new Error("Secure random number generation is not available.");
+};
+
 export const createPatternDesignerWindow = (): HTMLDivElement => {
     const modal = document.createElement('div');
     modal.style.cssText = `
@@ -68,6 +84,8 @@ export const createPatternDesignerWindow = (): HTMLDivElement => {
         background-color: #1a1a1a;
     `;
 
+    const nonce = generateNonce();
+
     // Embed the complete HTML content
     // NOTE: Styles are now injected safely via onload handler instead of template interpolation
     // to prevent potential XSS vulnerabilities.
@@ -75,7 +93,7 @@ export const createPatternDesignerWindow = (): HTMLDivElement => {
         <html lang="en">
             <head>
             <meta charset="UTF-8" />
-            <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src 'none';" />
+            <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'nonce-${nonce}'; style-src 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src 'none';" />
             <meta name="viewport" content="width=device-width, initial-scale=1.0" />
             <title>Æmotion Studio</title>
             <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -460,7 +478,7 @@ export const createPatternDesignerWindow = (): HTMLDivElement => {
                     <p id="rainbowText">Click the links above for more!</p>
                 </div>
             </div>
-            <script>
+            <script nonce="${nonce}">
                 document.addEventListener("DOMContentLoaded", () => {
                     console.log("Æmotion Studio splash page loaded with enhanced CSS spheres and dynamic about text.");
                     addRainbowEffect();

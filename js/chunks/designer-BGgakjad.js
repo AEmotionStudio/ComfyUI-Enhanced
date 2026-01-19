@@ -254,6 +254,19 @@ function withAlpha(color, alpha) {
   }
   return color;
 }
+const generateNonce = () => {
+  if (typeof window !== "undefined" && window.crypto) {
+    if (typeof window.crypto.randomUUID === "function") {
+      return window.crypto.randomUUID();
+    }
+    if (typeof window.crypto.getRandomValues === "function") {
+      const array = new Uint8Array(16);
+      window.crypto.getRandomValues(array);
+      return Array.from(array, (byte) => byte.toString(16).padStart(2, "0")).join("");
+    }
+  }
+  throw new Error("Secure random number generation is not available.");
+};
 const createPatternDesignerWindow = () => {
   const modal = document.createElement("div");
   modal.style.cssText = `
@@ -309,11 +322,12 @@ const createPatternDesignerWindow = () => {
         border-radius: 4px;
         background-color: #1a1a1a;
     `;
+  const nonce = generateNonce();
   const htmlContent = `
         <html lang="en">
             <head>
             <meta charset="UTF-8" />
-            <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src 'none';" />
+            <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'nonce-${nonce}'; style-src 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src 'none';" />
             <meta name="viewport" content="width=device-width, initial-scale=1.0" />
             <title>Æmotion Studio</title>
             <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -698,7 +712,7 @@ const createPatternDesignerWindow = () => {
                     <p id="rainbowText">Click the links above for more!</p>
                 </div>
             </div>
-            <script>
+            <script nonce="${nonce}">
                 document.addEventListener("DOMContentLoaded", () => {
                     console.log("Æmotion Studio splash page loaded with enhanced CSS spheres and dynamic about text.");
                     addRainbowEffect();
@@ -782,4 +796,4 @@ export {
   createNodeState as d,
   withAlpha as w
 };
-//# sourceMappingURL=designer-DlOy_QSa.js.map
+//# sourceMappingURL=designer-BGgakjad.js.map
