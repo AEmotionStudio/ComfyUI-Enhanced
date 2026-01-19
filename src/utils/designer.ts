@@ -44,14 +44,18 @@ export const createPatternDesignerWindow = (): HTMLDivElement => {
 
     const closeButton = document.createElement('button');
     closeButton.textContent = '×';
+    closeButton.setAttribute('aria-label', 'Close');
     closeButton.style.cssText = `
         background: none;
         border: none;
         color: #e0e0e0;
         font-size: 20px;
         cursor: pointer;
+        transition: color 0.2s ease;
     `;
     closeButton.onclick = () => modal.remove();
+    closeButton.onmouseenter = () => { closeButton.style.color = '#ffffff'; };
+    closeButton.onmouseleave = () => { closeButton.style.color = '#e0e0e0'; };
     titleBar.appendChild(closeButton);
 
     modal.appendChild(titleBar);

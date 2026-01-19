@@ -43,4 +43,20 @@ describe('Security Enhancements', () => {
             expect(rel).toContain('noreferrer');
         });
     });
+
+    it('should have accessible close button', () => {
+        const modal = createPatternDesignerWindow();
+        // The close button is the one with '×' text content in the title bar
+        // We can't select by class as it uses inline styles, so let's find the button in the title bar
+        const buttons = modal.querySelectorAll('button');
+        let closeButton: HTMLButtonElement | null = null;
+        buttons.forEach(btn => {
+            if (btn.textContent === '×') {
+                closeButton = btn;
+            }
+        });
+
+        expect(closeButton).not.toBeNull();
+        expect(closeButton!.getAttribute('aria-label')).toBe('Close');
+    });
 });
