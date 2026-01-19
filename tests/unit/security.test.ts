@@ -1,7 +1,11 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi, afterEach } from 'vitest';
 import { createPatternDesignerWindow } from '@/utils/designer';
 
 describe('Security Enhancements', () => {
+    afterEach(() => {
+        vi.restoreAllMocks();
+    });
+
     it('should include Content Security Policy with nonce in designer window iframe', () => {
         const modal = createPatternDesignerWindow();
         const iframe = modal.querySelector('iframe');
@@ -40,6 +44,34 @@ describe('Security Enhancements', () => {
         const script = doc.querySelector('script');
         expect(script).not.toBeNull();
         expect(script!.getAttribute('nonce')).toBe(nonce);
+    });
+
+    it('should use crypto.getRandomValues fallback if randomUUID is missing', () => {
+        // Mock window.crypto.randomUUID to be undefined
+        const originalRandomUUID = window.crypto.randomUUID;
+        // @ts-ignore
+        window.crypto.randomUUID = undefined;
+
+        // Spy on getRandomValues
+        const getRandomValuesSpy = vi.spyOn(window.crypto, 'getRandomValues');
+
+        const modal = createPatternDesignerWindow();
+        const iframe = modal.querySelector('iframe');
+        const srcdoc = iframe!.srcdoc;
+
+        // Check that a nonce was still generated
+        const nonceMatch = srcdoc.match(/script-src 'nonce-([^']+)'/);
+        expect(nonceMatch).not.toBeNull();
+        const nonce = nonceMatch![1];
+        expect(nonce).toBeTruthy();
+        // Should be a hex string (since we use hex encoding in fallback)
+        expect(nonce).toMatch(/^[0-9a-f]+$/);
+
+        // Verify fallback was called
+        expect(getRandomValuesSpy).toHaveBeenCalled();
+
+        // Restore
+        window.crypto.randomUUID = originalRandomUUID;
     });
 
     it('should prevent reverse tabnabbing on external links', () => {

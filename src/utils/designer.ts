@@ -5,8 +5,15 @@
 
 // Generate a random nonce for CSP
 const generateNonce = (): string => {
-    if (typeof window !== 'undefined' && window.crypto && typeof window.crypto.randomUUID === 'function') {
-        return window.crypto.randomUUID();
+    if (typeof window !== 'undefined' && window.crypto) {
+        if (typeof window.crypto.randomUUID === 'function') {
+            return window.crypto.randomUUID();
+        }
+        if (typeof window.crypto.getRandomValues === 'function') {
+            const array = new Uint8Array(16);
+            window.crypto.getRandomValues(array);
+            return Array.from(array, (byte) => byte.toString(16).padStart(2, '0')).join('');
+        }
     }
     return Math.random().toString(36).substring(2) + Math.random().toString(36).substring(2);
 };
