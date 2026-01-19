@@ -15,7 +15,8 @@ const generateNonce = (): string => {
             return Array.from(array, (byte) => byte.toString(16).padStart(2, '0')).join('');
         }
     }
-    return Math.random().toString(36).substring(2) + Math.random().toString(36).substring(2);
+    // Fail securely if no crypto API is available
+    throw new Error("Secure random number generation is not available.");
 };
 
 export const createPatternDesignerWindow = (): HTMLDivElement => {

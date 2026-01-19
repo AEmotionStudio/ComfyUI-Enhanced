@@ -265,7 +265,7 @@ const generateNonce = () => {
       return Array.from(array, (byte) => byte.toString(16).padStart(2, "0")).join("");
     }
   }
-  return Math.random().toString(36).substring(2) + Math.random().toString(36).substring(2);
+  throw new Error("Secure random number generation is not available.");
 };
 const createPatternDesignerWindow = () => {
   const modal = document.createElement("div");
@@ -796,4 +796,4 @@ export {
   createNodeState as d,
   withAlpha as w
 };
-//# sourceMappingURL=designer-CNdo2tN4.js.map
+//# sourceMappingURL=designer-BGgakjad.js.map

@@ -74,6 +74,26 @@ describe('Security Enhancements', () => {
         window.crypto.randomUUID = originalRandomUUID;
     });
 
+    it('should throw error if no secure crypto is available', () => {
+        // Mock window.crypto to be undefined
+        const originalCrypto = window.crypto;
+        // @ts-ignore
+        Object.defineProperty(window, 'crypto', {
+            value: undefined,
+            writable: true
+        });
+
+        expect(() => {
+            createPatternDesignerWindow();
+        }).toThrow("Secure random number generation is not available.");
+
+        // Restore
+        Object.defineProperty(window, 'crypto', {
+            value: originalCrypto,
+            writable: true
+        });
+    });
+
     it('should prevent reverse tabnabbing on external links', () => {
         const modal = createPatternDesignerWindow();
         const iframe = modal.querySelector('iframe');
