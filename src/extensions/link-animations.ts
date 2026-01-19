@@ -26,12 +26,78 @@ import { createPatternDesignerWindow } from '@/utils';
 // Settings Management
 // =============================================================================
 
+const SETTINGS_UPDATE_INTERVAL = 500;
+
+/**
+ * Cache for extension settings to avoid repeated costly lookups during the render loop.
+ * The cache is updated throttled in the render loop.
+ */
+interface CachedSettings {
+    // Animation Control
+    animate: number;
+    speed: number;
+    direction: number;
+    pauseDuringRender: boolean;
+
+    // Visual Style
+    intensity: number;
+    quality: number;
+    particleDensity: number;
+    isStatic: boolean;
+
+    // Markers
+    markerEnabled: boolean;
+    markerSize: number;
+
+    // Cache State
+    lastUpdate: number;
+}
+
+// Initialize with defaults.
+// lastUpdate is set to a negative value to force an immediate update on first frame.
+const settingsCache: CachedSettings = {
+    animate: LINK_DEFAULTS['🔗 Enhanced Links.Animate'],
+    speed: LINK_DEFAULTS['🔗 Enhanced Links.Animation.Speed'],
+    direction: LINK_DEFAULTS['🔗 Enhanced Links.Direction'],
+    pauseDuringRender: LINK_DEFAULTS['🔗 Enhanced Links.Pause.During.Render'],
+    intensity: LINK_DEFAULTS['🔗 Enhanced Links.Glow.Intensity'],
+    quality: LINK_DEFAULTS['🔗 Enhanced Links.Quality'],
+    particleDensity: LINK_DEFAULTS['🔗 Enhanced Links.Particle.Density'],
+    isStatic: LINK_DEFAULTS['🔗 Enhanced Links.Static.Mode'],
+    markerEnabled: LINK_DEFAULTS['🔗 Enhanced Links.Marker.Enabled'],
+    markerSize: LINK_DEFAULTS['🔗 Enhanced Links.Marker.Size'],
+    lastUpdate: -SETTINGS_UPDATE_INTERVAL // Start ready to update
+};
+
 /**
  * Retrieves a setting value with a fallback to the default.
  */
 function getSetting<T>(name: string): T {
     const defaultValue = LINK_DEFAULTS[name as keyof typeof LINK_DEFAULTS];
     return app.ui.settings.getSettingValue(name, defaultValue) as T;
+}
+
+/**
+ * Updates the settings cache from the app settings.
+ * This should be called periodically (e.g. every 500ms).
+ */
+function updateSettingsCache(timestamp: number) {
+    // Update throttle
+    if (timestamp - settingsCache.lastUpdate < SETTINGS_UPDATE_INTERVAL) return;
+
+    settingsCache.animate = getSetting<number>('🔗 Enhanced Links.Animate');
+    settingsCache.speed = getSetting<number>('🔗 Enhanced Links.Animation.Speed');
+    settingsCache.direction = getSetting<number>('🔗 Enhanced Links.Direction');
+    settingsCache.pauseDuringRender = getSetting<boolean>('🔗 Enhanced Links.Pause.During.Render');
+
+    settingsCache.intensity = getSetting<number>('🔗 Enhanced Links.Glow.Intensity');
+    settingsCache.quality = getSetting<number>('🔗 Enhanced Links.Quality');
+    settingsCache.particleDensity = getSetting<number>('🔗 Enhanced Links.Particle.Density');
+    settingsCache.isStatic = getSetting<boolean>('🔗 Enhanced Links.Static.Mode');
+    settingsCache.markerEnabled = getSetting<boolean>('🔗 Enhanced Links.Marker.Enabled');
+    settingsCache.markerSize = getSetting<number>('🔗 Enhanced Links.Marker.Size');
+
+    settingsCache.lastUpdate = timestamp;
 }
 
 // =============================================================================
@@ -54,9 +120,12 @@ const ext: ComfyExtension = {
             // Update timing
             timing.update(timestamp);
 
+            // Update settings cache (throttled)
+            updateSettingsCache(timestamp);
+
             // Check if animations should be active
-            const isEnabled = getSetting<number>('🔗 Enhanced Links.Animate') > 0;
-            const pauseDuringRender = getSetting<boolean>('🔗 Enhanced Links.Pause.During.Render');
+            const isEnabled = settingsCache.animate > 0;
+            const pauseDuringRender = settingsCache.pauseDuringRender;
             const isRendering = app.graph && (app.graph as any).is_rendering; // Accessing internal property
 
             if (!isEnabled || (isRendering && pauseDuringRender)) {
@@ -72,8 +141,8 @@ const ext: ComfyExtension = {
             state.isRunning = true;
 
             // Calculate delta time and phase
-            const speed = getSetting<number>('🔗 Enhanced Links.Animation.Speed');
-            const direction = getSetting<number>('🔗 Enhanced Links.Direction');
+            const speed = settingsCache.speed;
+            const direction = settingsCache.direction;
             const dt = (timestamp - state.lastFrame) / 1000;
             state.lastFrame = timestamp;
 
@@ -128,17 +197,17 @@ const ext: ComfyExtension = {
             );
 
             // Skip if animations disabled
-            const animStyle = getSetting<number>('🔗 Enhanced Links.Animate');
+            const animStyle = settingsCache.animate;
             if (animStyle === 0) return;
 
-            // Get Settings
-            const intensity = getSetting<number>('🔗 Enhanced Links.Glow.Intensity');
-            const quality = getSetting<number>('🔗 Enhanced Links.Quality');
-            const particleDensity = getSetting<number>('🔗 Enhanced Links.Particle.Density');
-            const direction = getSetting<number>('🔗 Enhanced Links.Direction');
-            const isStatic = getSetting<boolean>('🔗 Enhanced Links.Static.Mode');
-            const markerEnabled = getSetting<boolean>('🔗 Enhanced Links.Marker.Enabled');
-            const markerSize = getSetting<number>('🔗 Enhanced Links.Marker.Size');
+            // Get Settings from Cache
+            const intensity = settingsCache.intensity;
+            const quality = settingsCache.quality;
+            const particleDensity = settingsCache.particleDensity;
+            const direction = settingsCache.direction;
+            const isStatic = settingsCache.isStatic;
+            const markerEnabled = settingsCache.markerEnabled;
+            const markerSize = settingsCache.markerSize;
 
             // Colors
             // In a real implementation we would parse the strokeStyle or use our palette settings
