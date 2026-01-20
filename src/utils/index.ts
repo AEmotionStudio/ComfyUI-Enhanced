@@ -37,3 +37,6 @@ export {
 
 // Designer utilities
 export { createPatternDesignerWindow } from './designer';
+
+// Geometry utilities
+export { computeBezierPoint, computeBezierAngle } from './geometry';

@@ -20,7 +20,7 @@ import {
     type Color,
 } from '@/core';
 import { LinkEffects } from '@/effects/link-effects';
-import { createPatternDesignerWindow } from '@/utils';
+import { createPatternDesignerWindow, computeBezierPoint, computeBezierAngle } from '@/utils';
 
 // =============================================================================
 // Settings Management
@@ -241,24 +241,11 @@ const ext: ComfyExtension = {
             const cp2y = y2;
 
             const getPoint = (t: number) => {
-                const invT = 1 - t;
-                const invT2 = invT * invT;
-                const invT3 = invT2 * invT;
-                const t2 = t * t;
-                const t3 = t2 * t;
-
-                const x = invT3 * x1 + 3 * invT2 * t * cp1x + 3 * invT * t2 * cp2x + t3 * x2;
-                const y = invT3 * y1 + 3 * invT2 * t * cp1y + 3 * invT * t2 * cp2y + t3 * y2;
-                return [x, y] as [number, number];
+                return computeBezierPoint(t, x1, y1, cp1x, cp1y, cp2x, cp2y, x2, y2);
             };
 
             const getAngle = (t: number) => {
-                const delta = 0.01;
-                const t_prev = Math.max(0, t - delta);
-                const t_next = Math.min(1, t + delta);
-                const p_prev = getPoint(t_prev);
-                const p_next = getPoint(t_next);
-                return Math.atan2(p_next[1] - p_prev[1], p_next[0] - p_prev[0]);
+                return computeBezierAngle(t, x1, y1, cp1x, cp1y, cp2x, cp2y, x2, y2);
             };
 
             // Render based on selected animation style
