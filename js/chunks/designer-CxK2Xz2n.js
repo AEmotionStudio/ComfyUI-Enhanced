@@ -303,16 +303,47 @@ const createPatternDesignerWindow = () => {
         font-family: 'Orbitron', sans-serif;
     `;
   titleBar.appendChild(title);
+  let isDragging = false;
+  let currentX;
+  let currentY;
+  let initialX;
+  let initialY;
+  const onMouseMove = (e) => {
+    if (isDragging) {
+      e.preventDefault();
+      currentX = e.clientX - initialX;
+      currentY = e.clientY - initialY;
+      modal.style.left = currentX + "px";
+      modal.style.top = currentY + "px";
+    }
+  };
+  const onMouseUp = () => {
+    isDragging = false;
+  };
+  document.addEventListener("mousemove", onMouseMove);
+  document.addEventListener("mouseup", onMouseUp);
   const closeButton = document.createElement("button");
   closeButton.textContent = "×";
+  closeButton.setAttribute("aria-label", "Close");
   closeButton.style.cssText = `
         background: none;
         border: none;
         color: #e0e0e0;
         font-size: 20px;
         cursor: pointer;
+        transition: color 0.2s ease;
     `;
-  closeButton.onclick = () => modal.remove();
+  closeButton.onclick = () => {
+    document.removeEventListener("mousemove", onMouseMove);
+    document.removeEventListener("mouseup", onMouseUp);
+    modal.remove();
+  };
+  closeButton.onmouseenter = () => {
+    closeButton.style.color = "#ffffff";
+  };
+  closeButton.onmouseleave = () => {
+    closeButton.style.color = "#e0e0e0";
+  };
   titleBar.appendChild(closeButton);
   modal.appendChild(titleBar);
   const iframe = document.createElement("iframe");
@@ -758,11 +789,6 @@ const createPatternDesignerWindow = () => {
   };
   iframe.srcdoc = htmlContent;
   modal.appendChild(iframe);
-  let isDragging = false;
-  let currentX;
-  let currentY;
-  let initialX;
-  let initialY;
   titleBar.onmousedown = (e) => {
     isDragging = true;
     const rect = modal.getBoundingClientRect();
@@ -771,18 +797,6 @@ const createPatternDesignerWindow = () => {
     modal.style.top = rect.top + "px";
     initialX = e.clientX - rect.left;
     initialY = e.clientY - rect.top;
-  };
-  document.onmousemove = (e) => {
-    if (isDragging) {
-      e.preventDefault();
-      currentX = e.clientX - initialX;
-      currentY = e.clientY - initialY;
-      modal.style.left = currentX + "px";
-      modal.style.top = currentY + "px";
-    }
-  };
-  document.onmouseup = () => {
-    isDragging = false;
   };
   return modal;
 };
@@ -796,4 +810,4 @@ export {
   createNodeState as d,
   withAlpha as w
 };
-//# sourceMappingURL=designer-BGgakjad.js.map
+//# sourceMappingURL=designer-CxK2Xz2n.js.map
