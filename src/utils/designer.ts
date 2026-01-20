@@ -58,6 +58,32 @@ export const createPatternDesignerWindow = (): HTMLDivElement => {
     `;
     titleBar.appendChild(title);
 
+    // Make window draggable
+    let isDragging = false;
+    let currentX: number;
+    let currentY: number;
+    let initialX: number;
+    let initialY: number;
+
+    const onMouseMove = (e: MouseEvent) => {
+        if (isDragging) {
+            e.preventDefault();
+            currentX = e.clientX - initialX;
+            currentY = e.clientY - initialY;
+            modal.style.left = currentX + 'px';
+            modal.style.top = currentY + 'px';
+        }
+    };
+
+    const onMouseUp = () => {
+        isDragging = false;
+    };
+
+    // Use addEventListener instead of overwriting onmousemove/onmouseup
+    // to prevent conflicts with other extensions or core UI.
+    document.addEventListener('mousemove', onMouseMove);
+    document.addEventListener('mouseup', onMouseUp);
+
     const closeButton = document.createElement('button');
     closeButton.textContent = '×';
     closeButton.setAttribute('aria-label', 'Close');
@@ -69,7 +95,14 @@ export const createPatternDesignerWindow = (): HTMLDivElement => {
         cursor: pointer;
         transition: color 0.2s ease;
     `;
-    closeButton.onclick = () => modal.remove();
+
+    closeButton.onclick = () => {
+        // Cleanup event listeners when closing
+        document.removeEventListener('mousemove', onMouseMove);
+        document.removeEventListener('mouseup', onMouseUp);
+        modal.remove();
+    };
+
     closeButton.onmouseenter = () => { closeButton.style.color = '#ffffff'; };
     closeButton.onmouseleave = () => { closeButton.style.color = '#e0e0e0'; };
     titleBar.appendChild(closeButton);
@@ -528,13 +561,6 @@ export const createPatternDesignerWindow = (): HTMLDivElement => {
     iframe.srcdoc = htmlContent;
     modal.appendChild(iframe);
 
-    // Make window draggable
-    let isDragging = false;
-    let currentX: number;
-    let currentY: number;
-    let initialX: number;
-    let initialY: number;
-
     titleBar.onmousedown = (e) => {
         isDragging = true;
 
@@ -545,20 +571,6 @@ export const createPatternDesignerWindow = (): HTMLDivElement => {
 
         initialX = e.clientX - rect.left;
         initialY = e.clientY - rect.top;
-    };
-
-    document.onmousemove = (e) => {
-        if (isDragging) {
-            e.preventDefault();
-            currentX = e.clientX - initialX;
-            currentY = e.clientY - initialY;
-            modal.style.left = currentX + 'px';
-            modal.style.top = currentY + 'px';
-        }
-    };
-
-    document.onmouseup = () => {
-        isDragging = false;
     };
 
     return modal;
