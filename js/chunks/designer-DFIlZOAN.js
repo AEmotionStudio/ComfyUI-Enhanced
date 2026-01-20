@@ -269,6 +269,9 @@ const generateNonce = () => {
 };
 const createPatternDesignerWindow = () => {
   const modal = document.createElement("div");
+  modal.setAttribute("role", "dialog");
+  modal.setAttribute("aria-modal", "true");
+  modal.setAttribute("aria-labelledby", "pattern-designer-title");
   modal.style.cssText = `
         position: fixed;
         left: 50%;
@@ -296,6 +299,7 @@ const createPatternDesignerWindow = () => {
         align-items: center;
     `;
   const title = document.createElement("span");
+  title.id = "pattern-designer-title";
   title.textContent = "About Æmotion Studio";
   title.style.cssText = `
         color: #e0e0e0;
@@ -305,14 +309,22 @@ const createPatternDesignerWindow = () => {
   titleBar.appendChild(title);
   const closeButton = document.createElement("button");
   closeButton.textContent = "×";
+  closeButton.setAttribute("aria-label", "Close");
   closeButton.style.cssText = `
         background: none;
         border: none;
         color: #e0e0e0;
         font-size: 20px;
         cursor: pointer;
+        transition: color 0.2s ease;
     `;
   closeButton.onclick = () => modal.remove();
+  closeButton.onmouseenter = () => {
+    closeButton.style.color = "#ffffff";
+  };
+  closeButton.onmouseleave = () => {
+    closeButton.style.color = "#e0e0e0";
+  };
   titleBar.appendChild(closeButton);
   modal.appendChild(titleBar);
   const iframe = document.createElement("iframe");
@@ -758,6 +770,9 @@ const createPatternDesignerWindow = () => {
   };
   iframe.srcdoc = htmlContent;
   modal.appendChild(iframe);
+  setTimeout(() => {
+    closeButton.focus();
+  }, 100);
   let isDragging = false;
   let currentX;
   let currentY;
@@ -796,4 +811,4 @@ export {
   createNodeState as d,
   withAlpha as w
 };
-//# sourceMappingURL=designer-BGgakjad.js.map
+//# sourceMappingURL=designer-DFIlZOAN.js.map

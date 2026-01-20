@@ -21,6 +21,9 @@ const generateNonce = (): string => {
 
 export const createPatternDesignerWindow = (): HTMLDivElement => {
     const modal = document.createElement('div');
+    modal.setAttribute('role', 'dialog');
+    modal.setAttribute('aria-modal', 'true');
+    modal.setAttribute('aria-labelledby', 'pattern-designer-title');
     modal.style.cssText = `
         position: fixed;
         left: 50%;
@@ -50,6 +53,7 @@ export const createPatternDesignerWindow = (): HTMLDivElement => {
     `;
 
     const title = document.createElement('span');
+    title.id = 'pattern-designer-title';
     title.textContent = 'About Æmotion Studio';
     title.style.cssText = `
         color: #e0e0e0;
@@ -527,6 +531,11 @@ export const createPatternDesignerWindow = (): HTMLDivElement => {
 
     iframe.srcdoc = htmlContent;
     modal.appendChild(iframe);
+
+    // Focus close button for accessibility
+    setTimeout(() => {
+        closeButton.focus();
+    }, 100);
 
     // Make window draggable
     let isDragging = false;
