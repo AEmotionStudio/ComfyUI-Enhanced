@@ -130,4 +130,22 @@ describe('Security Enhancements', () => {
         expect(closeButton).not.toBeNull();
         expect(closeButton!.getAttribute('aria-label')).toBe('Close');
     });
+
+    it('should have accessible social links with aria-labels', () => {
+        const modal = createPatternDesignerWindow();
+        const iframe = modal.querySelector('iframe');
+        expect(iframe).not.toBeNull();
+
+        const srcdoc = iframe!.srcdoc;
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(srcdoc, 'text/html');
+        const ballLinks = doc.querySelectorAll('a.ball-link');
+
+        expect(ballLinks.length).toBe(4);
+
+        ballLinks.forEach(link => {
+            expect(link.getAttribute('aria-label')).toBeTruthy();
+            expect(link.getAttribute('title')).toBeTruthy();
+        });
+    });
 });
