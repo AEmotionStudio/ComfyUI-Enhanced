@@ -1,9 +1,5 @@
 import type { Point } from '@/core/types';
 
-// Shared buffers to avoid garbage collection
-const _angleBuffer1: Point = [0, 0];
-const _angleBuffer2: Point = [0, 0];
-
 /**
  * Computes a point on a cubic Bezier curve at t.
  * Writes to the provided buffer or returns a new array if none provided.
@@ -46,7 +42,7 @@ export function computeBezierPoint(
 
 /**
  * Computes the angle (tangent) of a cubic Bezier curve at t.
- * Uses shared internal buffers to avoid allocation.
+ * Uses analytical derivative for performance and precision.
  */
 export function computeBezierAngle(
     t: number,
@@ -55,13 +51,16 @@ export function computeBezierAngle(
     cp2x: number, cp2y: number,
     x2: number, y2: number
 ): number {
-    const delta = 0.01;
-    const t_prev = Math.max(0, t - delta);
-    const t_next = Math.min(1, t + delta);
+    // Cubic Bezier Derivative:
+    // P'(t) = 3(1-t)^2(P1-P0) + 6(1-t)t(P2-P1) + 3t^2(P3-P2)
 
-    // Use shared buffers for angle calculation
-    computeBezierPoint(t_prev, x1, y1, cp1x, cp1y, cp2x, cp2y, x2, y2, _angleBuffer1);
-    computeBezierPoint(t_next, x1, y1, cp1x, cp1y, cp2x, cp2y, x2, y2, _angleBuffer2);
+    const invT = 1 - t;
+    const A = 3 * invT * invT;
+    const B = 6 * invT * t;
+    const C = 3 * t * t;
 
-    return Math.atan2(_angleBuffer2[1] - _angleBuffer1[1], _angleBuffer2[0] - _angleBuffer1[0]);
+    const dx = A * (cp1x - x1) + B * (cp2x - cp1x) + C * (x2 - cp2x);
+    const dy = A * (cp1y - y1) + B * (cp2y - cp1y) + C * (y2 - cp2y);
+
+    return Math.atan2(dy, dx);
 }
