@@ -126,7 +126,7 @@ export const createPatternDesignerWindow = (): HTMLDivElement => {
         <html lang="en">
             <head>
             <meta charset="UTF-8" />
-            <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'nonce-${nonce}'; style-src 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src 'none';" />
+            <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'nonce-${nonce}'; style-src 'nonce-${nonce}' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src 'none';" />
             <meta name="viewport" content="width=device-width, initial-scale=1.0" />
             <title>Æmotion Studio</title>
             <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -135,10 +135,10 @@ export const createPatternDesignerWindow = (): HTMLDivElement => {
                 href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Montserrat:wght@300;400;700&display=swap"
                 rel="stylesheet"
             />
-                <style id="injected-styles">
+                <style id="injected-styles" nonce="${nonce}">
                 /* Styles will be injected here programmatically */
                 </style>
-                <style>
+                <style nonce="${nonce}">
                 * {
                     box-sizing: border-box;
                         margin: 0;
