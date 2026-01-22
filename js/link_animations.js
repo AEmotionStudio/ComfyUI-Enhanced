@@ -1,5 +1,5 @@
 import { app } from "/scripts/app.js";
-import { w as withAlpha, P as PHI, L as LINK_DEFAULTS, c as createLinkState, a as createTimingManager, b as createPatternDesignerWindow } from "./chunks/designer-CZdxPNPz.js";
+import { w as withAlpha, P as PHI, L as LINK_DEFAULTS, c as createLinkState, a as createTimingManager, b as createPatternDesignerWindow } from "./chunks/designer-CWWI0urQ.js";
 function calculateFlowPositions(linkLength, phase, density, direction) {
   const spacing = Math.max(30, 60 - density * 20);
   const markerCount = Math.max(1, Math.floor(linkLength / spacing));
@@ -128,8 +128,6 @@ const LinkEffects = {
   energySurge: energySurgeAnimation,
   quantumFlow: quantumFlowAnimation
 };
-const _angleBuffer1 = [0, 0];
-const _angleBuffer2 = [0, 0];
 function computeBezierPoint(t, x1, y1, cp1x, cp1y, cp2x, cp2y, x2, y2, out) {
   const invT = 1 - t;
   const invT2 = invT * invT;
@@ -138,20 +136,16 @@ function computeBezierPoint(t, x1, y1, cp1x, cp1y, cp2x, cp2y, x2, y2, out) {
   const t3 = t2 * t;
   const x = invT3 * x1 + 3 * invT2 * t * cp1x + 3 * invT * t2 * cp2x + t3 * x2;
   const y = invT3 * y1 + 3 * invT2 * t * cp1y + 3 * invT * t2 * cp2y + t3 * y2;
-  if (out) {
-    out[0] = x;
-    out[1] = y;
-    return out;
-  }
   return [x, y];
 }
 function computeBezierAngle(t, x1, y1, cp1x, cp1y, cp2x, cp2y, x2, y2) {
-  const delta = 0.01;
-  const t_prev = Math.max(0, t - delta);
-  const t_next = Math.min(1, t + delta);
-  computeBezierPoint(t_prev, x1, y1, cp1x, cp1y, cp2x, cp2y, x2, y2, _angleBuffer1);
-  computeBezierPoint(t_next, x1, y1, cp1x, cp1y, cp2x, cp2y, x2, y2, _angleBuffer2);
-  return Math.atan2(_angleBuffer2[1] - _angleBuffer1[1], _angleBuffer2[0] - _angleBuffer1[0]);
+  const invT = 1 - t;
+  const A = 3 * invT * invT;
+  const B = 6 * invT * t;
+  const C = 3 * t * t;
+  const dx = A * (cp1x - x1) + B * (cp2x - cp1x) + C * (x2 - cp2x);
+  const dy = A * (cp1y - y1) + B * (cp2y - cp1y) + C * (y2 - cp2y);
+  return Math.atan2(dy, dx);
 }
 const SETTINGS_UPDATE_INTERVAL = 500;
 const settingsCache = {

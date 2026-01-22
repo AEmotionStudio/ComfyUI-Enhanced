@@ -24,7 +24,7 @@ describe('Security Enhancements', () => {
         const expectedDirectives = [
             "default-src 'none'",
             `script-src 'nonce-${nonce}'`,
-            "style-src 'unsafe-inline' https://fonts.googleapis.com",
+            `style-src 'nonce-${nonce}' https://fonts.googleapis.com`,
             "font-src https://fonts.gstatic.com"
         ];
 
@@ -32,11 +32,14 @@ describe('Security Enhancements', () => {
             expect(srcdoc).toContain(directive);
         });
 
-        // Verify script-src does NOT contain unsafe-inline
-        // Note: style-src still contains it
+        // Verify script-src and style-src do NOT contain unsafe-inline
         const scriptSrc = srcdoc.match(/script-src [^;]+/);
         expect(scriptSrc).not.toBeNull();
         expect(scriptSrc![0]).not.toContain("'unsafe-inline'");
+
+        const styleSrc = srcdoc.match(/style-src [^;]+/);
+        expect(styleSrc).not.toBeNull();
+        expect(styleSrc![0]).not.toContain("'unsafe-inline'");
 
         // Verify script tag has the nonce
         const parser = new DOMParser();
@@ -44,6 +47,13 @@ describe('Security Enhancements', () => {
         const script = doc.querySelector('script');
         expect(script).not.toBeNull();
         expect(script!.getAttribute('nonce')).toBe(nonce);
+
+        // Verify style tags have the nonce
+        const styles = doc.querySelectorAll('style');
+        expect(styles.length).toBeGreaterThan(0);
+        styles.forEach(style => {
+            expect(style.getAttribute('nonce')).toBe(nonce);
+        });
     });
 
     it('should use crypto.getRandomValues fallback if randomUUID is missing', () => {
