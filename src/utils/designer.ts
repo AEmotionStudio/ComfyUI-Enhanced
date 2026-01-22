@@ -118,7 +118,9 @@ export const createPatternDesignerWindow = (): HTMLDivElement => {
     };
     closeButton.onblur = () => {
         closeButton.style.outline = 'none';
-        closeButton.style.color = '#e0e0e0';
+        if (!closeButton.matches(':hover')) {
+            closeButton.style.color = '#e0e0e0';
+        }
     };
     titleBar.appendChild(closeButton);
 
