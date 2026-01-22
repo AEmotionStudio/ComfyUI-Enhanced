@@ -129,6 +129,7 @@ describe('Security Enhancements', () => {
 
         expect(closeButton).not.toBeNull();
         expect(closeButton!.getAttribute('aria-label')).toBe('Close');
+        expect(closeButton!.getAttribute('title')).toBe('Close');
     });
 
     it('should have accessible social links with aria-labels', () => {

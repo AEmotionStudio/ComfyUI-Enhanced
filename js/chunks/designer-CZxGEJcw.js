@@ -325,13 +325,16 @@ const createPatternDesignerWindow = () => {
   const closeButton = document.createElement("button");
   closeButton.textContent = "×";
   closeButton.setAttribute("aria-label", "Close");
+  closeButton.setAttribute("title", "Close");
   closeButton.style.cssText = `
         background: none;
         border: none;
         color: #e0e0e0;
         font-size: 20px;
         cursor: pointer;
-        transition: color 0.2s ease;
+        transition: color 0.2s ease, outline 0.2s ease;
+        padding: 0 4px;
+        border-radius: 4px;
     `;
   closeButton.onclick = () => {
     document.removeEventListener("mousemove", onMouseMove);
@@ -342,6 +345,16 @@ const createPatternDesignerWindow = () => {
     closeButton.style.color = "#ffffff";
   };
   closeButton.onmouseleave = () => {
+    if (document.activeElement !== closeButton) {
+      closeButton.style.color = "#e0e0e0";
+    }
+  };
+  closeButton.onfocus = () => {
+    closeButton.style.color = "#ffffff";
+    closeButton.style.outline = "1px solid #ffffff";
+  };
+  closeButton.onblur = () => {
+    closeButton.style.outline = "none";
     closeButton.style.color = "#e0e0e0";
   };
   titleBar.appendChild(closeButton);
@@ -810,4 +823,4 @@ export {
   createNodeState as d,
   withAlpha as w
 };
-//# sourceMappingURL=designer-CZdxPNPz.js.map
+//# sourceMappingURL=designer-CZxGEJcw.js.map
