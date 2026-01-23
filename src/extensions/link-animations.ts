@@ -27,10 +27,6 @@ import { createPatternDesignerWindow, computeBezierPoint, computeBezierAngle } f
 // Shared Resources
 // =============================================================================
 
-// Shared buffer to avoid allocation during Bezier curve calculations
-// This avoids creating thousands of small arrays per frame in the render loop
-const SHARED_POINT_BUFFER: Point = [0, 0];
-
 // =============================================================================
 // Settings Management
 // =============================================================================
@@ -250,8 +246,7 @@ const ext: ComfyExtension = {
             const cp2y = y2;
 
             const getPoint = (t: number) => {
-                // WARNING: Returns shared buffer, do not store reference!
-                return computeBezierPoint(t, x1, y1, cp1x, cp1y, cp2x, cp2y, x2, y2, SHARED_POINT_BUFFER);
+                return computeBezierPoint(t, x1, y1, cp1x, cp1y, cp2x, cp2y, x2, y2);
             };
 
             const getAngle = (t: number) => {

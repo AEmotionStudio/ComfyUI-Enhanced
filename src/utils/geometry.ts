@@ -20,8 +20,7 @@ export function computeBezierPoint(
     x1: number, y1: number,
     cp1x: number, cp1y: number,
     cp2x: number, cp2y: number,
-    x2: number, y2: number,
-    out?: Point
+    x2: number, y2: number
 ): Point {
     const invT = 1 - t;
     const invT2 = invT * invT;
@@ -32,11 +31,6 @@ export function computeBezierPoint(
     const x = invT3 * x1 + 3 * invT2 * t * cp1x + 3 * invT * t2 * cp2x + t3 * x2;
     const y = invT3 * y1 + 3 * invT2 * t * cp1y + 3 * invT * t2 * cp2y + t3 * y2;
 
-    if (out) {
-        out[0] = x;
-        out[1] = y;
-        return out;
-    }
     return [x, y];
 }
 

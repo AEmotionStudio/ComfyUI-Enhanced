@@ -27,14 +27,6 @@ describe('geometry', () => {
             expect(point[0]).toBeCloseTo(49.625);
             expect(point[1]).toBeCloseTo(0);
         });
-
-        it('should write to output buffer if provided', () => {
-            const buffer: [number, number] = [0, 0];
-            const result = computeBezierPoint(0.5, x1, y1, cp1x, cp1y, cp2x, cp2y, x2, y2, buffer);
-            expect(result).toBe(buffer); // Should return same reference
-            expect(buffer[0]).toBeCloseTo(49.625);
-            expect(buffer[1]).toBeCloseTo(0);
-        });
     });
 
     describe('computeBezierAngle', () => {

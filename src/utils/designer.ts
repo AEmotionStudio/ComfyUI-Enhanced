@@ -21,6 +21,9 @@ const generateNonce = (): string => {
 
 export const createPatternDesignerWindow = (): HTMLDivElement => {
     const modal = document.createElement('div');
+    modal.setAttribute('role', 'dialog');
+    modal.setAttribute('aria-modal', 'true');
+    modal.setAttribute('aria-labelledby', 'aemotion-designer-title');
     modal.style.cssText = `
         position: fixed;
         left: 50%;
@@ -50,6 +53,7 @@ export const createPatternDesignerWindow = (): HTMLDivElement => {
     `;
 
     const title = document.createElement('span');
+    title.id = 'aemotion-designer-title';
     title.textContent = 'About Æmotion Studio';
     title.style.cssText = `
         color: #e0e0e0;
@@ -87,6 +91,7 @@ export const createPatternDesignerWindow = (): HTMLDivElement => {
     const closeButton = document.createElement('button');
     closeButton.textContent = '×';
     closeButton.setAttribute('aria-label', 'Close');
+    closeButton.title = 'Close';
     closeButton.style.cssText = `
         background: none;
         border: none;
@@ -572,6 +577,13 @@ export const createPatternDesignerWindow = (): HTMLDivElement => {
         initialX = e.clientX - rect.left;
         initialY = e.clientY - rect.top;
     };
+
+    // Initial focus on close button for accessibility
+    setTimeout(() => {
+        if (document.body.contains(modal)) {
+            closeButton.focus();
+        }
+    }, 50);
 
     return modal;
 };
