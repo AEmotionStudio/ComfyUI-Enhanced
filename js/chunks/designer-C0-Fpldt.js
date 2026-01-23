@@ -347,7 +347,7 @@ const createPatternDesignerWindow = () => {
   titleBar.appendChild(closeButton);
   modal.appendChild(titleBar);
   const iframe = document.createElement("iframe");
-  iframe.setAttribute("sandbox", "allow-scripts allow-same-origin allow-forms");
+  iframe.setAttribute("sandbox", "allow-scripts allow-forms");
   iframe.style.cssText = `
         flex: 1;
         border: none;
@@ -774,20 +774,6 @@ const createPatternDesignerWindow = () => {
             </body>
         </html>
     `;
-  iframe.onload = () => {
-    try {
-      const doc = iframe.contentDocument;
-      if (doc) {
-        const injectedStyles = doc.getElementById("injected-styles");
-        const parentStyles = document.querySelector("style");
-        if (injectedStyles && parentStyles) {
-          injectedStyles.textContent = parentStyles.textContent;
-        }
-      }
-    } catch (e) {
-      console.error("Error injecting styles into pattern designer window:", e);
-    }
-  };
   iframe.srcdoc = htmlContent;
   modal.appendChild(iframe);
   titleBar.onmousedown = (e) => {
@@ -811,4 +797,4 @@ export {
   createNodeState as d,
   withAlpha as w
 };
-//# sourceMappingURL=designer-B9NsnZwO.js.map
+//# sourceMappingURL=designer-C0-Fpldt.js.map

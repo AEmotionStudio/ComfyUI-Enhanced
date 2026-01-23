@@ -110,7 +110,7 @@ export const createPatternDesignerWindow = (): HTMLDivElement => {
     modal.appendChild(titleBar);
 
     const iframe = document.createElement('iframe');
-    iframe.setAttribute('sandbox', 'allow-scripts allow-same-origin allow-forms');
+    iframe.setAttribute('sandbox', 'allow-scripts allow-forms');
     iframe.style.cssText = `
         flex: 1;
         border: none;
@@ -120,9 +120,6 @@ export const createPatternDesignerWindow = (): HTMLDivElement => {
 
     const nonce = generateNonce();
 
-    // Embed the complete HTML content
-    // NOTE: Styles are now injected safely via onload handler instead of template interpolation
-    // to prevent potential XSS vulnerabilities.
     const htmlContent = `
         <html lang="en">
             <head>
@@ -542,22 +539,6 @@ export const createPatternDesignerWindow = (): HTMLDivElement => {
             </body>
         </html>
     `;
-
-    // Inject styles safely after iframe loads
-    iframe.onload = () => {
-        try {
-            const doc = iframe.contentDocument;
-            if (doc) {
-                const injectedStyles = doc.getElementById('injected-styles');
-                const parentStyles = document.querySelector('style');
-                if (injectedStyles && parentStyles) {
-                    injectedStyles.textContent = parentStyles.textContent;
-                }
-            }
-        } catch (e) {
-            console.error("Error injecting styles into pattern designer window:", e);
-        }
-    };
 
     iframe.srcdoc = htmlContent;
     modal.appendChild(iframe);
