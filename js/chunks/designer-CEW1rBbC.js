@@ -808,6 +808,7 @@ export {
   createPatternDesignerWindow as b,
   createLinkState as c,
   createNodeState as d,
+  hexToRgb as h,
   withAlpha as w
 };
-//# sourceMappingURL=designer-CWWI0urQ.js.map
+//# sourceMappingURL=designer-CEW1rBbC.js.map

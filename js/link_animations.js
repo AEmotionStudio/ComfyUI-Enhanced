@@ -1,5 +1,17 @@
 import { app } from "/scripts/app.js";
-import { w as withAlpha, P as PHI, L as LINK_DEFAULTS, c as createLinkState, a as createTimingManager, b as createPatternDesignerWindow } from "./chunks/designer-CWWI0urQ.js";
+import { h as hexToRgb, w as withAlpha, P as PHI, L as LINK_DEFAULTS, c as createLinkState, a as createTimingManager, b as createPatternDesignerWindow } from "./chunks/designer-CEW1rBbC.js";
+function getRgb(color) {
+  if (typeof color === "string" && color.startsWith("#")) {
+    return hexToRgb(color);
+  }
+  return null;
+}
+function fastAlpha(rgb, color, alpha) {
+  if (rgb) {
+    return `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, ${Math.max(0, Math.min(1, alpha))})`;
+  }
+  return withAlpha(color, alpha);
+}
 function calculateFlowPositions(linkLength, phase, density, direction) {
   const spacing = Math.max(30, 60 - density * 20);
   const markerCount = Math.max(1, Math.floor(linkLength / spacing));
@@ -17,7 +29,7 @@ function calculatePulseEffect(t, phase, quality) {
   const pulseSpeed = 2 + quality * 0.5;
   return 0.8 + 0.2 * Math.sin(t * Math.PI * 2 + phase * pulseSpeed);
 }
-function drawFlowMarker(ctx, x, y, angle, size, color, alpha, glowIntensity) {
+function drawFlowMarker(ctx, x, y, angle, size, color, alpha, glowIntensity, rgb) {
   ctx.save();
   ctx.translate(x, y);
   ctx.rotate(angle);
@@ -31,13 +43,15 @@ function drawFlowMarker(ctx, x, y, angle, size, color, alpha, glowIntensity) {
   ctx.lineTo(-size * 0.4, 0);
   ctx.lineTo(-size, -size * 0.7);
   ctx.closePath();
-  ctx.fillStyle = withAlpha(color, alpha);
+  ctx.fillStyle = fastAlpha(rgb || null, color, alpha);
   ctx.fill();
   ctx.restore();
 }
 function drawEnergyParticles(ctx, getPoint, params, primaryColor, secondaryColor) {
   const { phase, quality, particleDensity, direction, isStatic } = params;
   const particleCount = Math.floor(3 + quality * 2 * particleDensity);
+  const primaryRgb = getRgb(primaryColor);
+  const secondaryRgb = getRgb(secondaryColor);
   for (let i = 0; i < particleCount; i++) {
     const baseT = i / particleCount;
     const offset = isStatic ? 0 : (phase * direction * 0.15 + i * 0.1) % 1;
@@ -54,16 +68,16 @@ function drawEnergyParticles(ctx, getPoint, params, primaryColor, secondaryColor
       point[1],
       size * 2
     );
-    gradient.addColorStop(0, withAlpha(primaryColor, alpha));
-    gradient.addColorStop(0.5, withAlpha(secondaryColor, alpha * 0.5));
-    gradient.addColorStop(1, withAlpha(secondaryColor, 0));
+    gradient.addColorStop(0, fastAlpha(primaryRgb, primaryColor, alpha));
+    gradient.addColorStop(0.5, fastAlpha(secondaryRgb, secondaryColor, alpha * 0.5));
+    gradient.addColorStop(1, fastAlpha(secondaryRgb, secondaryColor, 0));
     ctx.beginPath();
     ctx.arc(point[0], point[1], size * 2, 0, Math.PI * 2);
     ctx.fillStyle = gradient;
     ctx.fill();
     ctx.beginPath();
     ctx.arc(point[0], point[1], size * 0.5, 0, Math.PI * 2);
-    ctx.fillStyle = withAlpha(primaryColor, Math.min(alpha * 1.5, 1));
+    ctx.fillStyle = fastAlpha(primaryRgb, primaryColor, Math.min(alpha * 1.5, 1));
     ctx.fill();
   }
 }
@@ -99,6 +113,7 @@ function classicFlowAnimation(ctx, getPoint, getAngle, linkLength, params, color
     params.particleDensity,
     params.direction
   );
+  const rgb = getRgb(color);
   for (const t of positions) {
     const point = getPoint(t);
     const angle = getAngle(t);
@@ -112,7 +127,8 @@ function classicFlowAnimation(ctx, getPoint, getAngle, linkLength, params, color
       markerSize * pulse,
       color,
       alpha,
-      params.glowIntensity
+      params.glowIntensity,
+      rgb
     );
   }
 }
@@ -136,6 +152,11 @@ function computeBezierPoint(t, x1, y1, cp1x, cp1y, cp2x, cp2y, x2, y2, out) {
   const t3 = t2 * t;
   const x = invT3 * x1 + 3 * invT2 * t * cp1x + 3 * invT * t2 * cp2x + t3 * x2;
   const y = invT3 * y1 + 3 * invT2 * t * cp1y + 3 * invT * t2 * cp2y + t3 * y2;
+  if (out) {
+    out[0] = x;
+    out[1] = y;
+    return out;
+  }
   return [x, y];
 }
 function computeBezierAngle(t, x1, y1, cp1x, cp1y, cp2x, cp2y, x2, y2) {
@@ -147,6 +168,7 @@ function computeBezierAngle(t, x1, y1, cp1x, cp1y, cp2x, cp2y, x2, y2) {
   const dy = A * (cp1y - y1) + B * (cp2y - cp1y) + C * (y2 - cp2y);
   return Math.atan2(dy, dx);
 }
+const SHARED_POINT_BUFFER = [0, 0];
 const SETTINGS_UPDATE_INTERVAL = 500;
 const settingsCache = {
   animate: LINK_DEFAULTS["🔗 Enhanced Links.Animate"],
@@ -250,7 +272,7 @@ const ext = {
       const cp2x = x2 - cp_dist;
       const cp2y = y2;
       const getPoint = (t) => {
-        return computeBezierPoint(t, x1, y1, cp1x, cp1y, cp2x, cp2y, x2, y2);
+        return computeBezierPoint(t, x1, y1, cp1x, cp1y, cp2x, cp2y, x2, y2, SHARED_POINT_BUFFER);
       };
       const getAngle = (t) => {
         return computeBezierAngle(t, x1, y1, cp1x, cp1y, cp2x, cp2y, x2, y2);

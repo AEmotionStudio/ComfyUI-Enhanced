@@ -7,7 +7,27 @@
 
 import type { Point, Color } from '@/core/types';
 import { PHI, SACRED } from '@/core/config';
-import { withAlpha } from '@/utils/colors';
+import { withAlpha, hexToRgb } from '@/utils/colors';
+
+// =============================================================================
+// Helpers
+// =============================================================================
+
+type RgbColor = { r: number; g: number; b: number };
+
+function getRgb(color: Color): RgbColor | null {
+    if (typeof color === 'string' && color.startsWith('#')) {
+        return hexToRgb(color);
+    }
+    return null;
+}
+
+function fastAlpha(rgb: RgbColor | null, color: Color, alpha: number): string {
+    if (rgb) {
+        return `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, ${Math.max(0, Math.min(1, alpha))})`;
+    }
+    return withAlpha(color, alpha);
+}
 
 // =============================================================================
 // Types
@@ -111,7 +131,8 @@ export function drawFlowMarker(
     size: number,
     color: Color,
     alpha: number,
-    glowIntensity: number
+    glowIntensity: number,
+    rgb?: RgbColor | null
 ): void {
     ctx.save();
     ctx.translate(x, y);
@@ -131,7 +152,7 @@ export function drawFlowMarker(
     ctx.lineTo(-size, -size * 0.7);
     ctx.closePath();
 
-    ctx.fillStyle = withAlpha(color, alpha);
+    ctx.fillStyle = fastAlpha(rgb || null, color, alpha);
     ctx.fill();
 
     ctx.restore();
@@ -149,6 +170,9 @@ export function drawEnergyParticles(
 ): void {
     const { phase, quality, particleDensity, direction, isStatic } = params;
     const particleCount = Math.floor(3 + quality * 2 * particleDensity);
+
+    const primaryRgb = getRgb(primaryColor);
+    const secondaryRgb = getRgb(secondaryColor);
 
     for (let i = 0; i < particleCount; i++) {
         const baseT = i / particleCount;
@@ -169,9 +193,9 @@ export function drawEnergyParticles(
             point[1],
             size * 2
         );
-        gradient.addColorStop(0, withAlpha(primaryColor, alpha));
-        gradient.addColorStop(0.5, withAlpha(secondaryColor, alpha * 0.5));
-        gradient.addColorStop(1, withAlpha(secondaryColor, 0));
+        gradient.addColorStop(0, fastAlpha(primaryRgb, primaryColor, alpha));
+        gradient.addColorStop(0.5, fastAlpha(secondaryRgb, secondaryColor, alpha * 0.5));
+        gradient.addColorStop(1, fastAlpha(secondaryRgb, secondaryColor, 0));
 
         ctx.beginPath();
         ctx.arc(point[0], point[1], size * 2, 0, Math.PI * 2);
@@ -181,7 +205,7 @@ export function drawEnergyParticles(
         // Core
         ctx.beginPath();
         ctx.arc(point[0], point[1], size * 0.5, 0, Math.PI * 2);
-        ctx.fillStyle = withAlpha(primaryColor, Math.min(alpha * 1.5, 1));
+        ctx.fillStyle = fastAlpha(primaryRgb, primaryColor, Math.min(alpha * 1.5, 1));
         ctx.fill();
     }
 }
@@ -249,6 +273,8 @@ export function classicFlowAnimation(
         params.direction
     );
 
+    const rgb = getRgb(color);
+
     for (const t of positions) {
         const point = getPoint(t);
         const angle = getAngle(t);
@@ -263,7 +289,8 @@ export function classicFlowAnimation(
             markerSize * pulse,
             color,
             alpha,
-            params.glowIntensity
+            params.glowIntensity,
+            rgb
         );
     }
 }
