@@ -158,4 +158,13 @@ describe('Security Enhancements', () => {
             expect(link.getAttribute('title')).toBeTruthy();
         });
     });
+
+    it('should have sandbox attribute on iframe', () => {
+        const modal = createPatternDesignerWindow();
+        const iframe = modal.querySelector('iframe');
+        expect(iframe).not.toBeNull();
+
+        const sandbox = iframe!.getAttribute('sandbox');
+        expect(sandbox).toBe('allow-scripts allow-same-origin allow-forms');
+    });
 });

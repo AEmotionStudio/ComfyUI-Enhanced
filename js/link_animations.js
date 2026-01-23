@@ -1,5 +1,5 @@
 import { app } from "/scripts/app.js";
-import { w as withAlpha, P as PHI, L as LINK_DEFAULTS, c as createLinkState, a as createTimingManager, b as createPatternDesignerWindow } from "./chunks/designer-CWWI0urQ.js";
+import { w as withAlpha, P as PHI, L as LINK_DEFAULTS, c as createLinkState, a as createTimingManager, b as createPatternDesignerWindow } from "./chunks/designer-B9NsnZwO.js";
 function calculateFlowPositions(linkLength, phase, density, direction) {
   const spacing = Math.max(30, 60 - density * 20);
   const markerCount = Math.max(1, Math.floor(linkLength / spacing));
@@ -136,6 +136,11 @@ function computeBezierPoint(t, x1, y1, cp1x, cp1y, cp2x, cp2y, x2, y2, out) {
   const t3 = t2 * t;
   const x = invT3 * x1 + 3 * invT2 * t * cp1x + 3 * invT * t2 * cp2x + t3 * x2;
   const y = invT3 * y1 + 3 * invT2 * t * cp1y + 3 * invT * t2 * cp2y + t3 * y2;
+  if (out) {
+    out[0] = x;
+    out[1] = y;
+    return out;
+  }
   return [x, y];
 }
 function computeBezierAngle(t, x1, y1, cp1x, cp1y, cp2x, cp2y, x2, y2) {
@@ -147,6 +152,7 @@ function computeBezierAngle(t, x1, y1, cp1x, cp1y, cp2x, cp2y, x2, y2) {
   const dy = A * (cp1y - y1) + B * (cp2y - cp1y) + C * (y2 - cp2y);
   return Math.atan2(dy, dx);
 }
+const SHARED_POINT_BUFFER = [0, 0];
 const SETTINGS_UPDATE_INTERVAL = 500;
 const settingsCache = {
   animate: LINK_DEFAULTS["🔗 Enhanced Links.Animate"],
@@ -250,7 +256,7 @@ const ext = {
       const cp2x = x2 - cp_dist;
       const cp2y = y2;
       const getPoint = (t) => {
-        return computeBezierPoint(t, x1, y1, cp1x, cp1y, cp2x, cp2y, x2, y2);
+        return computeBezierPoint(t, x1, y1, cp1x, cp1y, cp2x, cp2y, x2, y2, SHARED_POINT_BUFFER);
       };
       const getAngle = (t) => {
         return computeBezierAngle(t, x1, y1, cp1x, cp1y, cp2x, cp2y, x2, y2);
