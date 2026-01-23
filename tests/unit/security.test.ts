@@ -165,6 +165,6 @@ describe('Security Enhancements', () => {
         expect(iframe).not.toBeNull();
 
         const sandbox = iframe!.getAttribute('sandbox');
-        expect(sandbox).toBe('allow-scripts allow-forms');
+        expect(sandbox).toBe('allow-scripts allow-forms allow-popups allow-popups-to-escape-sandbox');
     });
 });

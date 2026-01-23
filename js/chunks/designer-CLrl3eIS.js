@@ -347,7 +347,7 @@ const createPatternDesignerWindow = () => {
   titleBar.appendChild(closeButton);
   modal.appendChild(titleBar);
   const iframe = document.createElement("iframe");
-  iframe.setAttribute("sandbox", "allow-scripts allow-forms");
+  iframe.setAttribute("sandbox", "allow-scripts allow-forms allow-popups allow-popups-to-escape-sandbox");
   iframe.style.cssText = `
         flex: 1;
         border: none;
@@ -797,4 +797,4 @@ export {
   createNodeState as d,
   withAlpha as w
 };
-//# sourceMappingURL=designer-C0-Fpldt.js.map
+//# sourceMappingURL=designer-CLrl3eIS.js.map

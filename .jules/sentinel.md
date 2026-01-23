@@ -15,5 +15,5 @@
 
 ## 2025-05-15 - [Strict Sandboxing for Generated Iframes]
 **Vulnerability:** Generated iframes without a `sandbox` attribute inherit full privileges of the parent page (except origin separation if using srcdoc, but srcdoc actually inherits origin by default). This permits plugins, pointer locks, and potentially top-level navigation.
-**Learning:** Adding `sandbox="allow-scripts allow-forms"` restricts the iframe's capabilities (blocking plugins, top-navigation, parent access, etc.) while still allowing necessary script execution. `allow-same-origin` was specifically excluded to prevent the iframe from accessing the parent document or utilizing persistent storage.
+**Learning:** Adding `sandbox="allow-scripts allow-forms allow-popups allow-popups-to-escape-sandbox"` restricts the iframe's capabilities (blocking plugins, top-navigation, parent access, etc.) while still allowing necessary script execution and external links (via popups). `allow-same-origin` was specifically excluded to prevent the iframe from accessing the parent document or utilizing persistent storage.
 **Prevention:** Always apply the `sandbox` attribute to iframes, even if trusted, to enforce least privilege.

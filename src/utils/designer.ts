@@ -110,7 +110,7 @@ export const createPatternDesignerWindow = (): HTMLDivElement => {
     modal.appendChild(titleBar);
 
     const iframe = document.createElement('iframe');
-    iframe.setAttribute('sandbox', 'allow-scripts allow-forms');
+    iframe.setAttribute('sandbox', 'allow-scripts allow-forms allow-popups allow-popups-to-escape-sandbox');
     iframe.style.cssText = `
         flex: 1;
         border: none;
