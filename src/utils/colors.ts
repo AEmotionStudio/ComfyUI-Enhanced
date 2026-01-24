@@ -187,7 +187,7 @@ export function hexToRgb(
     }
 
     HEX_RGB_CACHE.set(hex, result);
-    return result;
+    return result ? { ...result } : null;
 }
 
 // =============================================================================
