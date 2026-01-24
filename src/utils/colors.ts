@@ -149,6 +149,13 @@ export function hsl2Hex(h: number, s: number, l: number): HexColor {
     return `#${f(0)}${f(8)}${f(4)}` as HexColor;
 }
 
+// =============================================================================
+// Cache
+// =============================================================================
+
+const HEX_RGB_CACHE = new Map<string, { r: number; g: number; b: number } | null>();
+const MAX_CACHE_SIZE = 1000;
+
 /**
  * Converts a hex color to RGB values.
  *
@@ -158,14 +165,29 @@ export function hsl2Hex(h: number, s: number, l: number): HexColor {
 export function hexToRgb(
     hex: string
 ): { r: number; g: number; b: number } | null {
-    const validated = validateHexColor(hex);
-    if (!validated) return null;
+    if (HEX_RGB_CACHE.has(hex)) {
+        const cached = HEX_RGB_CACHE.get(hex);
+        return cached ? { ...cached } : null;
+    }
 
-    return {
-        r: parseInt(validated.slice(1, 3), 16),
-        g: parseInt(validated.slice(3, 5), 16),
-        b: parseInt(validated.slice(5, 7), 16),
-    };
+    const validated = validateHexColor(hex);
+    let result: { r: number; g: number; b: number } | null = null;
+
+    if (validated) {
+        result = {
+            r: parseInt(validated.slice(1, 3), 16),
+            g: parseInt(validated.slice(3, 5), 16),
+            b: parseInt(validated.slice(5, 7), 16),
+        };
+    }
+
+    // Limit cache size
+    if (HEX_RGB_CACHE.size >= MAX_CACHE_SIZE) {
+        HEX_RGB_CACHE.clear();
+    }
+
+    HEX_RGB_CACHE.set(hex, result);
+    return result ? { ...result } : null;
 }
 
 // =============================================================================
