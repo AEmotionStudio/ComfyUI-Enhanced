@@ -353,6 +353,7 @@ const createPatternDesignerWindow = () => {
         border-radius: 4px;
         background-color: #1a1a1a;
     `;
+  iframe.setAttribute("sandbox", "allow-scripts allow-forms allow-popups allow-popups-to-escape-sandbox");
   const nonce = generateNonce();
   const htmlContent = `
         <html lang="en">
@@ -756,6 +757,16 @@ const createPatternDesignerWindow = () => {
                     }
                 });
 
+                // Listen for styles from parent since we are sandboxed
+                window.addEventListener("message", (event) => {
+                    if (event.data && event.data.type === 'styles') {
+                        const injectedStyles = document.getElementById('injected-styles');
+                        if (injectedStyles) {
+                            injectedStyles.textContent = event.data.css;
+                        }
+                    }
+                });
+
                 function addRainbowEffect() {
                     const rainbowElem = document.getElementById("rainbowText");
                     const text = rainbowElem.textContent;
@@ -775,16 +786,15 @@ const createPatternDesignerWindow = () => {
     `;
   iframe.onload = () => {
     try {
-      const doc = iframe.contentDocument;
-      if (doc) {
-        const injectedStyles = doc.getElementById("injected-styles");
-        const parentStyles = document.querySelector("style");
-        if (injectedStyles && parentStyles) {
-          injectedStyles.textContent = parentStyles.textContent;
-        }
+      const parentStyles = document.querySelector("style");
+      if (parentStyles && iframe.contentWindow) {
+        iframe.contentWindow.postMessage({
+          type: "styles",
+          css: parentStyles.textContent
+        }, "*");
       }
     } catch (e) {
-      console.error("Error injecting styles into pattern designer window:", e);
+      console.error("Error sending styles to pattern designer window:", e);
     }
   };
   iframe.srcdoc = htmlContent;
@@ -811,4 +821,4 @@ export {
   hexToRgb as h,
   withAlpha as w
 };
-//# sourceMappingURL=designer-CEW1rBbC.js.map
+//# sourceMappingURL=designer-IwOSB0C6.js.map

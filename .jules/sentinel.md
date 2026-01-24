@@ -12,3 +12,8 @@
 **Vulnerability:** Use of `script-src 'unsafe-inline'` in `srcdoc` iframe CSP allowed potential XSS if attacker could inject script tags into the generated HTML.
 **Learning:** For client-side generated iframes (like `srcdoc`), we can generate a cryptographic nonce in JavaScript (`crypto.randomUUID`) and inject it into both the CSP meta tag and the script tag, completely removing the need for `unsafe-inline` even for inline scripts.
 **Prevention:** Use `nonce-${generatedNonce}` in CSP `script-src` and add `nonce="${generatedNonce}"` to inline scripts instead of using `'unsafe-inline'`.
+
+## 2025-05-15 - [Missing Sandbox Attribute on srcdoc Iframe]
+**Vulnerability:** The `srcdoc` iframe in `createPatternDesignerWindow` was missing the `sandbox` attribute. While CSP was present, the lack of `sandbox` meant the iframe content could potentially access the parent window (same-origin), bypassing some isolation guarantees.
+**Learning:** `srcdoc` iframes are treated as same-origin unless sandboxed. Even with CSP, privilege escalation is possible if the iframe content can access `window.parent`. However, blindly applying `sandbox` can break functionality; e.g., external links require `allow-popups` and `allow-popups-to-escape-sandbox`.
+**Prevention:** Explicitly set `sandbox` attributes for `srcdoc` frames (e.g., `allow-scripts allow-forms allow-popups allow-popups-to-escape-sandbox`), ensuring `allow-same-origin` is excluded to prevent parent access.

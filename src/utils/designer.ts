@@ -117,6 +117,10 @@ export const createPatternDesignerWindow = (): HTMLDivElement => {
         background-color: #1a1a1a;
     `;
 
+    // Security: Restrict iframe capabilities while allowing necessary interactions
+    // We need allow-popups and allow-popups-to-escape-sandbox for external links (YouTube, GitHub, etc.) to work
+    iframe.setAttribute('sandbox', 'allow-scripts allow-forms allow-popups allow-popups-to-escape-sandbox');
+
     const nonce = generateNonce();
 
     // Embed the complete HTML content
@@ -524,6 +528,16 @@ export const createPatternDesignerWindow = (): HTMLDivElement => {
                     }
                 });
 
+                // Listen for styles from parent since we are sandboxed
+                window.addEventListener("message", (event) => {
+                    if (event.data && event.data.type === 'styles') {
+                        const injectedStyles = document.getElementById('injected-styles');
+                        if (injectedStyles) {
+                            injectedStyles.textContent = event.data.css;
+                        }
+                    }
+                });
+
                 function addRainbowEffect() {
                     const rainbowElem = document.getElementById("rainbowText");
                     const text = rainbowElem.textContent;
@@ -542,19 +556,18 @@ export const createPatternDesignerWindow = (): HTMLDivElement => {
         </html>
     `;
 
-    // Inject styles safely after iframe loads
+    // Inject styles safely via postMessage to bypass cross-origin restrictions
     iframe.onload = () => {
         try {
-            const doc = iframe.contentDocument;
-            if (doc) {
-                const injectedStyles = doc.getElementById('injected-styles');
-                const parentStyles = document.querySelector('style');
-                if (injectedStyles && parentStyles) {
-                    injectedStyles.textContent = parentStyles.textContent;
-                }
+            const parentStyles = document.querySelector('style');
+            if (parentStyles && iframe.contentWindow) {
+                iframe.contentWindow.postMessage({
+                    type: 'styles',
+                    css: parentStyles.textContent
+                }, '*');
             }
         } catch (e) {
-            console.error("Error injecting styles into pattern designer window:", e);
+            console.error("Error sending styles to pattern designer window:", e);
         }
     };
 

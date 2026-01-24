@@ -158,4 +158,17 @@ describe('Security Enhancements', () => {
             expect(link.getAttribute('title')).toBeTruthy();
         });
     });
+
+    it('should have restrictive sandbox attribute on iframe', () => {
+        const modal = createPatternDesignerWindow();
+        const iframe = modal.querySelector('iframe');
+        expect(iframe).not.toBeNull();
+
+        const sandbox = iframe!.getAttribute('sandbox');
+        expect(sandbox).not.toBeNull();
+        // Should allow scripts (for the interactive bits) and forms, but NOT allow-same-origin
+        // Must allow popups for external links
+        expect(sandbox).toBe('allow-scripts allow-forms allow-popups allow-popups-to-escape-sandbox');
+        expect(sandbox).not.toContain('allow-same-origin');
+    });
 });
