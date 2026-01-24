@@ -20,7 +20,13 @@ const generateNonce = (): string => {
 };
 
 export const createPatternDesignerWindow = (): HTMLDivElement => {
+    // Capture focus before opening to restore it later
+    const previousFocus = document.activeElement as HTMLElement;
+
     const modal = document.createElement('div');
+    modal.setAttribute('role', 'dialog');
+    modal.setAttribute('aria-modal', 'true');
+    modal.setAttribute('aria-labelledby', 'designer-title');
     modal.style.cssText = `
         position: fixed;
         left: 50%;
@@ -50,6 +56,7 @@ export const createPatternDesignerWindow = (): HTMLDivElement => {
     `;
 
     const title = document.createElement('span');
+    title.id = 'designer-title';
     title.textContent = 'About Æmotion Studio';
     title.style.cssText = `
         color: #e0e0e0;
@@ -84,9 +91,18 @@ export const createPatternDesignerWindow = (): HTMLDivElement => {
     document.addEventListener('mousemove', onMouseMove);
     document.addEventListener('mouseup', onMouseUp);
 
+    // Handle Escape key to close the modal
+    const onKeyDown = (e: KeyboardEvent) => {
+        if (e.key === 'Escape') {
+            closeButton.click();
+        }
+    };
+    document.addEventListener('keydown', onKeyDown);
+
     const closeButton = document.createElement('button');
     closeButton.textContent = '×';
     closeButton.setAttribute('aria-label', 'Close');
+    closeButton.setAttribute('title', 'Close');
     closeButton.style.cssText = `
         background: none;
         border: none;
@@ -100,7 +116,13 @@ export const createPatternDesignerWindow = (): HTMLDivElement => {
         // Cleanup event listeners when closing
         document.removeEventListener('mousemove', onMouseMove);
         document.removeEventListener('mouseup', onMouseUp);
+        document.removeEventListener('keydown', onKeyDown);
         modal.remove();
+
+        // Restore focus
+        if (previousFocus && typeof previousFocus.focus === 'function') {
+            previousFocus.focus();
+        }
     };
 
     closeButton.onmouseenter = () => { closeButton.style.color = '#ffffff'; };
@@ -572,6 +594,11 @@ export const createPatternDesignerWindow = (): HTMLDivElement => {
         initialX = e.clientX - rect.left;
         initialY = e.clientY - rect.top;
     };
+
+    // Focus the close button after the modal is added to the DOM
+    setTimeout(() => {
+        closeButton.focus();
+    }, 10);
 
     return modal;
 };
