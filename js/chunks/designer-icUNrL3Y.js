@@ -268,7 +268,11 @@ const generateNonce = () => {
   throw new Error("Secure random number generation is not available.");
 };
 const createPatternDesignerWindow = () => {
+  const previousFocus = document.activeElement;
   const modal = document.createElement("div");
+  modal.setAttribute("role", "dialog");
+  modal.setAttribute("aria-modal", "true");
+  modal.setAttribute("aria-labelledby", "designer-title");
   modal.style.cssText = `
         position: fixed;
         left: 50%;
@@ -296,6 +300,7 @@ const createPatternDesignerWindow = () => {
         align-items: center;
     `;
   const title = document.createElement("span");
+  title.id = "designer-title";
   title.textContent = "About Æmotion Studio";
   title.style.cssText = `
         color: #e0e0e0;
@@ -322,9 +327,16 @@ const createPatternDesignerWindow = () => {
   };
   document.addEventListener("mousemove", onMouseMove);
   document.addEventListener("mouseup", onMouseUp);
+  const onKeyDown = (e) => {
+    if (e.key === "Escape") {
+      closeButton.click();
+    }
+  };
+  document.addEventListener("keydown", onKeyDown);
   const closeButton = document.createElement("button");
   closeButton.textContent = "×";
   closeButton.setAttribute("aria-label", "Close");
+  closeButton.setAttribute("title", "Close");
   closeButton.style.cssText = `
         background: none;
         border: none;
@@ -336,7 +348,11 @@ const createPatternDesignerWindow = () => {
   closeButton.onclick = () => {
     document.removeEventListener("mousemove", onMouseMove);
     document.removeEventListener("mouseup", onMouseUp);
+    document.removeEventListener("keydown", onKeyDown);
     modal.remove();
+    if (previousFocus && typeof previousFocus.focus === "function") {
+      previousFocus.focus();
+    }
   };
   closeButton.onmouseenter = () => {
     closeButton.style.color = "#ffffff";
@@ -798,6 +814,9 @@ const createPatternDesignerWindow = () => {
     initialX = e.clientX - rect.left;
     initialY = e.clientY - rect.top;
   };
+  setTimeout(() => {
+    closeButton.focus();
+  }, 10);
   return modal;
 };
 export {
@@ -811,4 +830,4 @@ export {
   hexToRgb as h,
   withAlpha as w
 };
-//# sourceMappingURL=designer-CEW1rBbC.js.map
+//# sourceMappingURL=designer-icUNrL3Y.js.map
