@@ -240,7 +240,9 @@ const ext: ComfyExtension = {
 
             // Helper to sample the bezier curve
             // P(t) = (1-t)^3 P0 + 3(1-t)^2 t P1 + 3(1-t) t^2 P2 + t^3 P3
-            const dist = Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2));
+            const dx = x2 - x1;
+            const dy = y2 - y1;
+            const dist = Math.sqrt(dx * dx + dy * dy);
 
             // LiteGraph uses this heuristic for control points
             const cp_dist = dist * 0.25;
