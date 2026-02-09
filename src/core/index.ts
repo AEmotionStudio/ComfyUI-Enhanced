@@ -69,6 +69,7 @@ export type {
     // Geometry types
     Point,
     Vector2D,
+    BezierCurve,
 
     // State types
     BaseAnimationState,

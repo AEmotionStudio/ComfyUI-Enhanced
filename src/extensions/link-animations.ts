@@ -18,18 +18,23 @@ import {
     type ComfyApp,
     type LinkAnimationParams,
     type Color,
-    type Point,
+    type BezierCurve,
 } from '@/core';
 import { LinkEffects } from '@/effects/link-effects';
-import { createPatternDesignerWindow, computeBezierPoint, computeBezierAngle } from '@/utils';
+import { createPatternDesignerWindow } from '@/utils';
 
 // =============================================================================
 // Shared Resources
 // =============================================================================
 
 // Shared buffer to avoid allocation during Bezier curve calculations
-// This avoids creating thousands of small arrays per frame in the render loop
-const SHARED_POINT_BUFFER: Point = [0, 0];
+// This avoids creating thousands of small objects per frame in the render loop
+const SHARED_CURVE: BezierCurve = {
+    x1: 0, y1: 0,
+    cp1x: 0, cp1y: 0,
+    cp2x: 0, cp2y: 0,
+    x2: 0, y2: 0
+};
 
 // =============================================================================
 // Settings Management
@@ -251,14 +256,15 @@ const ext: ComfyExtension = {
             const cp2x = x2 - cp_dist;
             const cp2y = y2;
 
-            const getPoint = (t: number) => {
-                // WARNING: Returns shared buffer, do not store reference!
-                return computeBezierPoint(t, x1, y1, cp1x, cp1y, cp2x, cp2y, x2, y2, SHARED_POINT_BUFFER);
-            };
-
-            const getAngle = (t: number) => {
-                return computeBezierAngle(t, x1, y1, cp1x, cp1y, cp2x, cp2y, x2, y2);
-            };
+            // Populate shared curve object to avoid allocation
+            SHARED_CURVE.x1 = x1;
+            SHARED_CURVE.y1 = y1;
+            SHARED_CURVE.cp1x = cp1x;
+            SHARED_CURVE.cp1y = cp1y;
+            SHARED_CURVE.cp2x = cp2x;
+            SHARED_CURVE.cp2y = cp2y;
+            SHARED_CURVE.x2 = x2;
+            SHARED_CURVE.y2 = y2;
 
             // Render based on selected animation style
             // 9 = Classic Flow (default map)
@@ -272,8 +278,7 @@ const ext: ComfyExtension = {
             if (animStyle === 9) { // Classic Flow
                 LinkEffects.classicFlow(
                     ctx,
-                    getPoint,
-                    getAngle,
+                    SHARED_CURVE,
                     dist,
                     params,
                     color,
@@ -282,7 +287,7 @@ const ext: ComfyExtension = {
             } else if (animStyle === 8) { // Energy Surge
                 LinkEffects.energySurge(
                     ctx,
-                    getPoint,
+                    SHARED_CURVE,
                     params,
                     color,
                     '#ffffff' // Secondary color placeholder
@@ -290,7 +295,7 @@ const ext: ComfyExtension = {
             } else if (animStyle === 7) { // Quantum Flow
                 LinkEffects.quantumFlow(
                     ctx,
-                    getPoint,
+                    SHARED_CURVE,
                     params,
                     color,
                     lineWidth

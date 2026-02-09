@@ -11,7 +11,7 @@ import {
     calculateBlinkFactor,
 } from '@/effects/types';
 import {
-    calculateFlowPositions,
+    forEachFlowPosition,
     calculateWaveOffset,
     calculatePulseEffect,
 } from '@/effects/link-effects';
@@ -146,25 +146,28 @@ describe('calculateBlinkFactor', () => {
     });
 });
 
-describe('calculateFlowPositions', () => {
-    it('should return array of positions', () => {
-        const positions = calculateFlowPositions(200, 0, 1, 1);
-        expect(Array.isArray(positions)).toBe(true);
+describe('forEachFlowPosition', () => {
+    it('should iterate over positions', () => {
+        const positions: number[] = [];
+        forEachFlowPosition(200, 0, 1, 1, (t) => positions.push(t));
         expect(positions.length).toBeGreaterThan(0);
     });
 
     it('should return positions between 0 and 1', () => {
-        const positions = calculateFlowPositions(200, 5, 1.5, -1);
-        for (const t of positions) {
+        forEachFlowPosition(200, 5, 1.5, -1, (t) => {
             expect(t).toBeGreaterThanOrEqual(0);
             expect(t).toBeLessThanOrEqual(1);
-        }
+        });
     });
 
     it('should have more positions with higher density', () => {
-        const lowDensity = calculateFlowPositions(200, 0, 0.5, 1);
-        const highDensity = calculateFlowPositions(200, 0, 2, 1);
-        expect(highDensity.length).toBeGreaterThanOrEqual(lowDensity.length);
+        let lowDensityCount = 0;
+        forEachFlowPosition(200, 0, 0.5, 1, () => lowDensityCount++);
+
+        let highDensityCount = 0;
+        forEachFlowPosition(200, 0, 2, 1, () => highDensityCount++);
+
+        expect(highDensityCount).toBeGreaterThanOrEqual(lowDensityCount);
     });
 });
 
