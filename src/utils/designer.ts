@@ -126,7 +126,21 @@ export const createPatternDesignerWindow = (): HTMLDivElement => {
     };
 
     closeButton.onmouseenter = () => { closeButton.style.color = '#ffffff'; };
-    closeButton.onmouseleave = () => { closeButton.style.color = '#e0e0e0'; };
+    closeButton.onmouseleave = () => {
+        if (document.activeElement !== closeButton) {
+            closeButton.style.color = '#e0e0e0';
+        }
+    };
+
+    closeButton.onfocus = () => {
+        closeButton.style.color = '#ffffff';
+        closeButton.style.outline = '2px solid white';
+        closeButton.style.borderRadius = '4px';
+    };
+    closeButton.onblur = () => {
+        closeButton.style.color = '#e0e0e0';
+        closeButton.style.outline = 'none';
+    };
     titleBar.appendChild(closeButton);
 
     modal.appendChild(titleBar);
