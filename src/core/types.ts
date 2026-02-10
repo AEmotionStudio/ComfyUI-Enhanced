@@ -133,6 +133,18 @@ export interface Vector2D {
     y: number;
 }
 
+/** A cubic Bezier curve definition */
+export interface BezierCurve {
+    x1: number;
+    y1: number;
+    cp1x: number;
+    cp1y: number;
+    cp2x: number;
+    cp2y: number;
+    x2: number;
+    y2: number;
+}
+
 // =============================================================================
 // State Types
 // =============================================================================

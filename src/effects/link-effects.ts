@@ -5,13 +5,18 @@
  * @module effects/link-effects
  */
 
-import type { Point, Color } from '@/core/types';
+import type { Point, Color, BezierCurve } from '@/core/types';
 import { PHI, SACRED } from '@/core/config';
 import { withAlpha, hexToRgb } from '@/utils/colors';
+import { computeBezierPoint, computeBezierAngle } from '@/utils/geometry';
 
 // =============================================================================
 // Helpers
 // =============================================================================
+
+// Shared buffer to avoid allocation during Bezier curve calculations
+// This avoids creating thousands of small arrays per frame in the render loop
+const SHARED_POINT_BUFFER: Point = [0, 0];
 
 type RgbColor = { r: number; g: number; b: number };
 
@@ -62,13 +67,37 @@ export interface AnimatedLinkPoint {
 // =============================================================================
 
 /**
- * Calculate flow positions along a link.
+ * Iterate over flow positions along a link.
  *
  * @param linkLength - Total length of the link
  * @param phase - Current animation phase
  * @param density - Marker density
  * @param direction - Flow direction
- * @returns Array of t values (0-1) for marker positions
+ * @param callback - Function to call for each position t (0-1)
+ */
+export function forEachFlowPosition(
+    linkLength: number,
+    phase: number,
+    density: number,
+    direction: number,
+    callback: (t: number) => void
+): void {
+    const spacing = Math.max(30, 60 - density * 20);
+    const markerCount = Math.max(1, Math.floor(linkLength / spacing));
+
+    for (let i = 0; i < markerCount; i++) {
+        const baseT = i / markerCount;
+        const animOffset = (phase * direction * 0.1) % 1;
+        let t = (baseT + animOffset) % 1;
+        if (t < 0) t += 1;
+        callback(t);
+    }
+}
+
+/**
+ * Calculate flow positions along a link.
+ *
+ * @deprecated Use forEachFlowPosition instead to avoid array allocation
  */
 export function calculateFlowPositions(
     linkLength: number,
@@ -76,18 +105,8 @@ export function calculateFlowPositions(
     density: number,
     direction: number
 ): number[] {
-    const spacing = Math.max(30, 60 - density * 20);
-    const markerCount = Math.max(1, Math.floor(linkLength / spacing));
     const positions: number[] = [];
-
-    for (let i = 0; i < markerCount; i++) {
-        const baseT = i / markerCount;
-        const animOffset = (phase * direction * 0.1) % 1;
-        let t = (baseT + animOffset) % 1;
-        if (t < 0) t += 1;
-        positions.push(t);
-    }
-
+    forEachFlowPosition(linkLength, phase, density, direction, (t) => positions.push(t));
     return positions;
 }
 
@@ -163,7 +182,7 @@ export function drawFlowMarker(
  */
 export function drawEnergyParticles(
     ctx: CanvasRenderingContext2D,
-    getPoint: (t: number) => Point,
+    curve: BezierCurve,
     params: LinkAnimationParams,
     primaryColor: Color,
     secondaryColor: Color
@@ -180,7 +199,14 @@ export function drawEnergyParticles(
         let t = (baseT + offset) % 1;
         if (t < 0) t += 1;
 
-        const point = getPoint(t);
+        const point = computeBezierPoint(
+            t,
+            curve.x1, curve.y1,
+            curve.cp1x, curve.cp1y,
+            curve.cp2x, curve.cp2y,
+            curve.x2, curve.y2,
+            SHARED_POINT_BUFFER
+        );
         const size = 2 + quality + Math.sin(phase * 2 + i) * 1;
         const alpha = 0.6 + 0.4 * Math.sin(phase * 3 + i * PHI);
 
@@ -215,7 +241,7 @@ export function drawEnergyParticles(
  */
 export function drawGlowTrail(
     ctx: CanvasRenderingContext2D,
-    getPoint: (t: number) => Point,
+    curve: BezierCurve,
     params: LinkAnimationParams,
     color: Color,
     thickness: number
@@ -235,7 +261,14 @@ export function drawGlowTrail(
         let t = trailStart + segmentT * trailLength;
         if (t > 1) t -= 1;
 
-        const point = getPoint(t);
+        const point = computeBezierPoint(
+            t,
+            curve.x1, curve.y1,
+            curve.cp1x, curve.cp1y,
+            curve.cp2x, curve.cp2y,
+            curve.x2, curve.y2,
+            SHARED_POINT_BUFFER
+        );
 
         if (i === 0) {
             ctx.moveTo(point[0], point[1]);
@@ -259,40 +292,51 @@ export function drawGlowTrail(
  */
 export function classicFlowAnimation(
     ctx: CanvasRenderingContext2D,
-    getPoint: (t: number) => Point,
-    getAngle: (t: number) => number,
+    curve: BezierCurve,
     linkLength: number,
     params: LinkAnimationParams,
     color: Color,
     markerSize: number
 ): void {
-    const positions = calculateFlowPositions(
+    const rgb = getRgb(color);
+
+    forEachFlowPosition(
         linkLength,
         params.phase,
         params.particleDensity,
-        params.direction
+        params.direction,
+        (t) => {
+            const point = computeBezierPoint(
+                t,
+                curve.x1, curve.y1,
+                curve.cp1x, curve.cp1y,
+                curve.cp2x, curve.cp2y,
+                curve.x2, curve.y2,
+                SHARED_POINT_BUFFER
+            );
+            const angle = computeBezierAngle(
+                t,
+                curve.x1, curve.y1,
+                curve.cp1x, curve.cp1y,
+                curve.cp2x, curve.cp2y,
+                curve.x2, curve.y2
+            );
+            const pulse = calculatePulseEffect(t, params.phase, params.quality);
+            const alpha = 0.7 + 0.3 * pulse;
+
+            drawFlowMarker(
+                ctx,
+                point[0],
+                point[1],
+                angle,
+                markerSize * pulse,
+                color,
+                alpha,
+                params.glowIntensity,
+                rgb
+            );
+        }
     );
-
-    const rgb = getRgb(color);
-
-    for (const t of positions) {
-        const point = getPoint(t);
-        const angle = getAngle(t);
-        const pulse = calculatePulseEffect(t, params.phase, params.quality);
-        const alpha = 0.7 + 0.3 * pulse;
-
-        drawFlowMarker(
-            ctx,
-            point[0],
-            point[1],
-            angle,
-            markerSize * pulse,
-            color,
-            alpha,
-            params.glowIntensity,
-            rgb
-        );
-    }
 }
 
 /**
@@ -300,12 +344,12 @@ export function classicFlowAnimation(
  */
 export function energySurgeAnimation(
     ctx: CanvasRenderingContext2D,
-    getPoint: (t: number) => Point,
+    curve: BezierCurve,
     params: LinkAnimationParams,
     primaryColor: Color,
     secondaryColor: Color
 ): void {
-    drawEnergyParticles(ctx, getPoint, params, primaryColor, secondaryColor);
+    drawEnergyParticles(ctx, curve, params, primaryColor, secondaryColor);
 }
 
 /**
@@ -313,13 +357,13 @@ export function energySurgeAnimation(
  */
 export function quantumFlowAnimation(
     ctx: CanvasRenderingContext2D,
-    getPoint: (t: number) => Point,
+    curve: BezierCurve,
     params: LinkAnimationParams,
     color: Color,
     thickness: number
 ): void {
-    drawGlowTrail(ctx, getPoint, params, color, thickness);
-    drawEnergyParticles(ctx, getPoint, params, color, color);
+    drawGlowTrail(ctx, curve, params, color, thickness);
+    drawEnergyParticles(ctx, curve, params, color, color);
 }
 
 // =============================================================================
