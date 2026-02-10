@@ -25,7 +25,9 @@ describe('Security Enhancements', () => {
             "default-src 'none'",
             `script-src 'nonce-${nonce}'`,
             `style-src 'nonce-${nonce}' https://fonts.googleapis.com`,
-            "font-src https://fonts.gstatic.com"
+            "font-src https://fonts.gstatic.com",
+            "base-uri 'none'",
+            "form-action 'none'"
         ];
 
         expectedDirectives.forEach(directive => {

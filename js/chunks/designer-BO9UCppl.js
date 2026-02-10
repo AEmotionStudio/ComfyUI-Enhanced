@@ -222,14 +222,27 @@ function validateHexColor(color) {
   if (!/^#[0-9A-Fa-f]{6}$/i.test(normalized)) return null;
   return normalized.toLowerCase();
 }
+const HEX_RGB_CACHE = /* @__PURE__ */ new Map();
+const MAX_CACHE_SIZE = 1e3;
 function hexToRgb(hex) {
+  if (HEX_RGB_CACHE.has(hex)) {
+    const cached = HEX_RGB_CACHE.get(hex);
+    return cached ? { ...cached } : null;
+  }
   const validated = validateHexColor(hex);
-  if (!validated) return null;
-  return {
-    r: parseInt(validated.slice(1, 3), 16),
-    g: parseInt(validated.slice(3, 5), 16),
-    b: parseInt(validated.slice(5, 7), 16)
-  };
+  let result = null;
+  if (validated) {
+    result = {
+      r: parseInt(validated.slice(1, 3), 16),
+      g: parseInt(validated.slice(3, 5), 16),
+      b: parseInt(validated.slice(5, 7), 16)
+    };
+  }
+  if (HEX_RGB_CACHE.size >= MAX_CACHE_SIZE) {
+    HEX_RGB_CACHE.clear();
+  }
+  HEX_RGB_CACHE.set(hex, result);
+  return result ? { ...result } : null;
 }
 function withAlpha(color, alpha) {
   const validAlpha = Math.max(0, Math.min(1, alpha));
@@ -374,7 +387,7 @@ const createPatternDesignerWindow = () => {
         <html lang="en">
             <head>
             <meta charset="UTF-8" />
-            <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'nonce-${nonce}'; style-src 'nonce-${nonce}' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src 'none';" />
+            <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'nonce-${nonce}'; style-src 'nonce-${nonce}' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src 'none'; base-uri 'none'; form-action 'none';" />
             <meta name="viewport" content="width=device-width, initial-scale=1.0" />
             <title>Æmotion Studio</title>
             <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -830,4 +843,4 @@ export {
   hexToRgb as h,
   withAlpha as w
 };
-//# sourceMappingURL=designer-icUNrL3Y.js.map
+//# sourceMappingURL=designer-BO9UCppl.js.map

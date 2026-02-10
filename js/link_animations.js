@@ -1,5 +1,5 @@
 import { app } from "/scripts/app.js";
-import { h as hexToRgb, w as withAlpha, P as PHI, L as LINK_DEFAULTS, c as createLinkState, a as createTimingManager, b as createPatternDesignerWindow } from "./chunks/designer-icUNrL3Y.js";
+import { h as hexToRgb, w as withAlpha, P as PHI, L as LINK_DEFAULTS, c as createLinkState, a as createTimingManager, b as createPatternDesignerWindow } from "./chunks/designer-BO9UCppl.js";
 function getRgb(color) {
   if (typeof color === "string" && color.startsWith("#")) {
     return hexToRgb(color);
@@ -265,7 +265,9 @@ const ext = {
         direction,
         isStatic
       };
-      const dist = Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2));
+      const dx = x2 - x1;
+      const dy = y2 - y1;
+      const dist = Math.sqrt(dx * dx + dy * dy);
       const cp_dist = dist * 0.25;
       const cp1x = x1 + cp_dist;
       const cp1y = y1;
