@@ -50,3 +50,9 @@ pnpm-debug.log*
 Browser_Console_Errors.md
 errors.md
 DEVELOPMENT.md
+
+# Legacy source files
+old_link_animations.js
+old_node_animations.js
+link_animations.js
+node_animations.js
