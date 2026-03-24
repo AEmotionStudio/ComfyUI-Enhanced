@@ -6,6 +6,7 @@ pnpm-lock.yaml
 # Note: js/ is NOT ignored because it contains the runtime files for ComfyUI
 dist/
 js/backup/
+images/
 
 # Test artifacts
 coverage/

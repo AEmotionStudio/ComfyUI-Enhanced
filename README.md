@@ -10,7 +10,7 @@
 [![Last Commit](https://img.shields.io/github/last-commit/AEmotionStudio/ComfyUI-EnhancedLinksandNodes?style=for-the-badge&label=Last%20Update&color=orange)](https://github.com/AEmotionStudio/ComfyUI-EnhancedLinksandNodes/commits)
 [![Activity](https://img.shields.io/github/commit-activity/m/AEmotionStudio/ComfyUI-EnhancedLinksandNodes?style=for-the-badge&label=Activity&color=yellow)](https://github.com/AEmotionStudio/ComfyUI-EnhancedLinksandNodes/commits)
 
-![ComfyUI-Enhanced](images/preview.webp)
+![ComfyUI-Enhanced](https://github.com/AEmotionStudio/ComfyUI-EnhancedLinksandNodes/releases/download/assets-v1/preview.webp)
 
 *Enhanced visual aids • Customizable animations • Performance focused*
 
@@ -105,15 +105,15 @@
 
 **Context Menu for Nodes**
 
-![ComfyUI-Enhanced](images/preview2.webp)
+![ComfyUI-Enhanced](https://github.com/AEmotionStudio/ComfyUI-EnhancedLinksandNodes/releases/download/assets-v1/preview2.webp)
 
 **End of Animation Completion Effect**
 
-![ComfyUI-Enhanced](images/preview3.webp)
+![ComfyUI-Enhanced](https://github.com/AEmotionStudio/ComfyUI-EnhancedLinksandNodes/releases/download/assets-v1/preview3.webp)
 
 **Text Animation Tool**
 
-![ComfyUI-Enhanced](images/preview4.webp)
+![ComfyUI-Enhanced](https://github.com/AEmotionStudio/ComfyUI-EnhancedLinksandNodes/releases/download/assets-v1/preview4.webp)
 
 ---
 
