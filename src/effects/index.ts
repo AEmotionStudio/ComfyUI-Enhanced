@@ -37,7 +37,27 @@ export {
     drawParticles,
 } from './node-effects';
 
-// Link effects
+// Animated link renderers
+export {
+    renderAnimatedStyle,
+    renderSacredFlow,
+    renderCrystalStream,
+    renderQuantumField,
+    renderCosmicWeave,
+    renderEnergyPulse,
+    renderDNAHelix,
+    renderLavaFlow,
+    renderStellarPlasma,
+    renderClassicFlow,
+    type RenderItem,
+} from './animated-renderers';
+
+// Static link renderers
+export {
+    renderStaticStyle,
+} from './static-renderers';
+
+// Legacy link effects (kept for backwards compatibility)
 export type {
     LinkAnimationParams,
     AnimatedLinkPoint,

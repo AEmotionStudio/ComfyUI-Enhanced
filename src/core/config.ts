@@ -73,22 +73,26 @@ export const LINK_DEFAULTS = Object.freeze({
     '🔗 Enhanced Links.Marker.Shape': 'arrow', // Arrow shape
     '🔗 Enhanced Links.Particle.Density': 0.5, // Minimal
     '🔗 Enhanced Links.Quality': 1, // Basic (Fast)
-    '🔗 Enhanced Links.Link.Shadow.Enabled': true, // Link shadows
-    '🔗 Enhanced Links.Marker.Shadow.Enabled': true, // Marker shadows
+    '🔗 Enhanced Links.Link.Shadow.Enabled': false, // Link shadows off by default
+    '🔗 Enhanced Links.Marker.Shadow.Enabled': false, // Marker shadows off by default
     '🔗 Enhanced Links.Thickness': 3, // Medium thickness
     '🔗 Enhanced Links.UI & Æmotion Studio About': 0, // Closed panel
     '🔗 Enhanced Links.Static.Mode': false, // Animated mode
     '🔗 Enhanced Links.Pause.During.Render': true, // Pause during render
+    '🔗 Enhanced Links.Shadow.Blur': 5, // Shadow blur
+    '🔗 Enhanced Links.Shadow.Offset': 3, // Shadow offset
 });
 
 /** Default settings for node animations */
 export const NODE_DEFAULTS = Object.freeze({
-    '📦 Enhanced Nodes.Animate': 1, // Gentle Pulse
+    '📦 Enhanced Nodes.Animate': 0, // None (off by default)
     '📦 Enhanced Nodes.Animation.Glow': 0.5, // Medium glow
     '📦 Enhanced Nodes.Animation.Size': 1, // Normal size
     '📦 Enhanced Nodes.Animation.Speed': 1, // Normal speed
     '📦 Enhanced Nodes.Animations.Enabled': true, // Animations on
     '📦 Enhanced Nodes.Color.Accent': '#0088ff', // Deep blue
+    '📦 Enhanced Nodes.Color.Hover': '#00ff15', // Green hover outline
+    '📦 Enhanced Nodes.Color.Hover.Show': false, // Hide hover outline
     '📦 Enhanced Nodes.Color.Mode': 'default', // Default colors
     '📦 Enhanced Nodes.Color.Particle': '#ffff00', // Yellow
     '📦 Enhanced Nodes.Color.Primary': '#44aaff', // Bright blue
@@ -103,7 +107,7 @@ export const NODE_DEFAULTS = Object.freeze({
     '📦 Enhanced Nodes.Particle.Density': 1, // Normal density
     '📦 Enhanced Nodes.Particle.Glow': 0.5, // Medium particle glow
     '📦 Enhanced Nodes.Particle.Intensity': 1.0, // Normal intensity
-    '📦 Enhanced Nodes.Particle.Show': true, // Show particles
+    '📦 Enhanced Nodes.Particle.Show': false, // Particles off by default
     '📦 Enhanced Nodes.Particle.Size': 1.0, // Normal size
     '📦 Enhanced Nodes.Particle.Speed': 1, // Normal speed
     '📦 Enhanced Nodes.Quality': 2, // Balanced
@@ -111,6 +115,14 @@ export const NODE_DEFAULTS = Object.freeze({
     '📦 Enhanced Nodes.Pause.During.Render': true, // Pause during render
     '📦 Enhanced Nodes.Text.Animation.Enabled': false, // No text animation
     '📦 Enhanced Nodes.Text.Color': '#00ffff', // Cyan
+    '📦 Enhanced Nodes.Text.Glow': 0.5, // Medium text glow
+    '📦 Enhanced Nodes.Text.Size': 14, // 14px text
+    '📦 Enhanced Nodes.Text.Style': 'neon', // Neon style
+    '📦 Enhanced Nodes.Text.Letter.Spacing': 0, // Normal spacing
+    '📦 Enhanced Nodes.Text.Position.X': 0, // Centered X
+    '📦 Enhanced Nodes.Text.Position.Y': 0, // Centered Y
+    '📦 Enhanced Nodes.Text.Rotation.Radius': 0, // No orbit
+    '📦 Enhanced Nodes.Text.Rotation.Angle': 0, // No rotation
     '📦 Enhanced Nodes.UI & Æmotion Studio About': 0, // Closed panel
 });
 

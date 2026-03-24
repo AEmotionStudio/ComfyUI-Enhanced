@@ -251,7 +251,23 @@ export interface LinkAnimationParams {
 export interface ComfyApp {
     graph: ComfyGraph | null;
     ui: ComfyUI;
+    extensionManager: ComfyExtensionManager;
     registerExtension(extension: ComfyExtension): void;
+}
+
+/** ComfyUI extension manager */
+export interface ComfyExtensionManager {
+    registerSidebarTab(tab: ComfySidebarTab): void;
+}
+
+/** ComfyUI sidebar tab definition */
+export interface ComfySidebarTab {
+    id: string;
+    icon: string;
+    title: string;
+    tooltip: string;
+    type: 'custom';
+    render: (el: HTMLElement) => void;
 }
 
 /** ComfyUI graph object */

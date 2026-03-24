@@ -5,7 +5,7 @@
 **A visually stunning extension for ComfyUI that adds beautiful, customizable animations to both links and nodes in your workflow.**
 
 [![ComfyUI](https://img.shields.io/badge/ComfyUI-Extension-green?style=for-the-badge)](https://github.com/comfyanonymous/ComfyUI)
-[![Version](https://img.shields.io/badge/Version-1.0.2-orange?style=for-the-badge)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/Version-2.0.0-orange?style=for-the-badge)](CHANGELOG.md)
 [![License](https://img.shields.io/badge/License-MIT-red?style=for-the-badge)](LICENSE)
 [![Last Commit](https://img.shields.io/github/last-commit/AEmotionStudio/ComfyUI-EnhancedLinksandNodes?style=for-the-badge&label=Last%20Update&color=orange)](https://github.com/AEmotionStudio/ComfyUI-EnhancedLinksandNodes/commits)
 [![Activity](https://img.shields.io/github/commit-activity/m/AEmotionStudio/ComfyUI-EnhancedLinksandNodes?style=for-the-badge&label=Activity&color=yellow)](https://github.com/AEmotionStudio/ComfyUI-EnhancedLinksandNodes/commits)
@@ -26,16 +26,14 @@
 
 ---
 
-## What's New in v1.0.2
+## What's New in v2.0.0
 
-**Enhanced Visual Experience & Performance**
+**Complete TypeScript Rewrite & Sidebar UI**
 
-*   **Link Animations**: 9 Unique Animation Styles including Classic Flow, Sacred Flow, and more.
-*   **Node Animations**: 4 Node Animation Styles including Gentle Pulse and Neon Nexus.
-*   **Advanced Customization**: Extensive control over colors, markers, styles, and performance.
-*   **Performance Settings**: Options for static mode, quality control, and pause during render.
-*   **Text Visibility Tool**: Enhanced text animation for nodes.
-*   **End-of-Render Animation**: Special effects upon workflow completion.
+*   **Sidebar Settings Panel** — adjust all link and node settings live with instant visual preview
+*   **Independent Particles** — particles now work as a standalone feature, no animation style required
+*   **Reset to Defaults** — one-click reset buttons for both link and node settings
+*   **Complete TypeScript Rewrite** — modular, type-safe architecture with batched rendering and 60+ registered settings
 
 > 📄 **See [CHANGELOG.md](CHANGELOG.md) for the complete version history.**
 
@@ -65,12 +63,13 @@
 
 - **4 Node Animation Styles**:
   - Gentle Pulse, Neon Nexus, Cosmic Ripple, Flower of Life
+- **Independent Particle System**:
+  - Works standalone or combined with any animation style
+  - 6 color modes: default, rainbow, complementary, energy, quantum, aurora
 - **Node Animation Features**:
-  - Per-node animation style selection
   - Static mode option
   - Completion effects
-  - Text animation
-  - Particle effects
+  - 5 text animation styles (neon, cyberpunk, retro, pulse, minimal)
   - Quality settings
   - Animation speed control
 
@@ -94,9 +93,11 @@
 
 ### 🎨 Visual Tools
 
-- **Context Menu for Nodes**: Easy access to animation settings.
-- **End of Animation Completion Effect**: Visual feedback when tasks complete.
-- **Text Animation Tool**: Bring your node titles to life.
+- **Live Sidebar Panel**: Adjust all settings with instant visual feedback
+- **Reset to Defaults**: One-click restore for link and node settings
+- **Context Menu for Nodes**: Easy access to per-node settings
+- **End of Animation Completion Effect**: Visual feedback when tasks complete
+- **Text Animation Tool**: 5 styles to bring node titles to life
 
 </td>
 </tr>

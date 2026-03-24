@@ -48,3 +48,5 @@ pnpm-debug.log*
 
 # Docs
 Browser_Console_Errors.md
+errors.md
+DEVELOPMENT.md
