@@ -10,5 +10,5 @@ Repository = "https://github.com/AEmotionStudio/ComfyUI-EnhancedLinksandNodes"
 
 [tool.comfy]
 PublisherId = "aemotionstudio"
-DisplayName = "ComfyUI-EnhancedLinksandNodes"
+DisplayName = "ComfyUI-enhancedlinksandnodes"
 Icon = ""
