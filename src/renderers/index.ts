@@ -4,32 +4,26 @@
  * @module renderers
  */
 
-// Marker shapes
-export {
-    none,
-    diamond,
-    circle,
-    arrow,
-    square,
-    triangle,
-    star,
-    heart,
-    cross,
-    hexagon,
-    flower,
-    spiral,
-    MarkerShapes,
-    getMarkerShape,
-} from './marker-shapes';
-
 // Link renderers
 export {
-    splineRenderer,
-    straightRenderer,
-    linearRenderer,
-    hiddenRenderer,
-    dottedRenderer,
-    dashedRenderer,
     LinkRenderers,
     getLinkRenderer,
+    type LinkRenderer,
+    type LinkPoint,
 } from './link-renderers';
+
+// Marker shapes
+export {
+    MarkerShapes,
+    shapeNeedsFill,
+    type MarkerShapeFn,
+} from './marker-shapes';
+
+// Render utilities
+export {
+    createFlowField,
+    createCrystal,
+    createMerkaba,
+    calculateCurvePoints,
+    enableAntiAliasing,
+} from './render-utils';

@@ -4,36 +4,37 @@
  * @module utils
  *
  * @example
- * import { hex2Hsl, withAlpha, enhanceColor } from '@/utils';
+ * import { withAlpha, enhanceColor } from '@/utils';
  */
 
-// Color utilities
+// Color utilities (basic alpha/HSL helpers)
 export {
-    // Configuration
     DEFAULT_COLOR,
     ANIMATION_COLORS,
     type AnimationStyle,
-
-    // Validation
     validateHexColor,
-
-    // HSL conversion
     hex2Hsl,
     hsl2Hex,
     hexToRgb,
-
-    // Alpha handling
     withAlpha,
-
-    // Color enhancement
     enhanceColor,
-
-    // Utility functions
     getComplementaryColor,
     hsl,
     hsla,
     getAnimationColors,
 } from './colors';
+
+// Color Manager (settings-aware color resolution)
+export {
+    getCustomLinkColors,
+    getLinkColor,
+    getSecondaryColor,
+    getAccentColor,
+    getCustomNodeColors,
+    NODE_ANIMATION_COLORS,
+    validateHexColor as validateHex,
+    enhanceColor as enhance,
+} from './color-manager';
 
 // Designer utilities
 export { createPatternDesignerWindow } from './designer';

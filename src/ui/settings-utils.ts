@@ -205,6 +205,7 @@ export function isSettingModified<T>(
     id: string,
     defaultValue: T
 ): boolean {
-    const currentValue = app.ui.settings.getSettingValue(id, defaultValue);
+    const val = app.ui.settings.getSettingValue(id);
+    const currentValue = (val ?? defaultValue) as T;
     return currentValue !== defaultValue;
 }

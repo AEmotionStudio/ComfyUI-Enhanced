@@ -286,7 +286,8 @@ export function getSettingValue<T>(
     id: string,
     defaultValue: T
 ): T {
-    return app.ui.settings.getSettingValue(id, defaultValue);
+    const val = app.ui.settings.getSettingValue(id);
+    return (val ?? defaultValue) as T;
 }
 
 /**

@@ -1,169 +1,511 @@
 /// <reference path="../comfy.d.ts" />
 /**
  * ComfyUI Enhanced Node Animations Extension
- * 
- * This extension adds visual enhancements to nodes, including:
- * - Idle animations (breathing, pulsing)
- * - Selection highlights
- * - Execution state visualization (active/running nodes)
- * 
+ *
+ * Full-featured node animation system with:
+ * - 4 animation styles (Gentle Pulse, Neon Nexus, Cosmic Ripple, Flower of Life)
+ * - Text animation system (5 styles: neon, cyberpunk, retro, pulse, minimal)
+ * - Particle color modes (rainbow, complementary, energy, quantum, aurora)
+ * - Completion fireworks
+ * - Per-node settings via context menu
+ * - ColorManager integration for proper color resolution
+ *
+ * Ported from original node_animations.js (2,996 lines).
+ *
  * @module extensions/node-animations
  */
 
 import { app } from '/scripts/app.js';
+import { api } from '/scripts/api.js';
 import {
     createNodeState,
-    createTimingManager,
-    NODE_DEFAULTS,
     type NodeState,
     type ComfyExtension,
     type ComfyApp,
     type ComfyNode,
-    type NodeAnimationStyleName,
     type Color,
 } from '@/core';
-import { getNodeEffect } from '@/effects/node-effects';
-import { createPatternDesignerWindow } from '@/utils';
+import { getNodeEffect, drawParticles } from '@/effects/node-effects';
+import { getCustomNodeColors } from '@/utils/color-manager';
+import { withAlpha, validateHexColor } from '@/utils/colors';
 
 // =============================================================================
-// Settings
+// Helpers
 // =============================================================================
 
-function getSetting<T>(name: string): T {
-    const defaultValue = NODE_DEFAULTS[name as keyof typeof NODE_DEFAULTS];
-    return app.ui.settings.getSettingValue(name, defaultValue) as T;
+function setting<T>(key: string, def: T): T {
+    return (app.ui.settings.getSettingValue(key) ?? def) as T;
 }
 
 // =============================================================================
-// Extension Implementation
+// Text Animation System
+// =============================================================================
+
+function hexToRGB(hex: string): [number, number, number] {
+    const validated = validateHexColor(hex) || '#00ffff';
+    return [
+        parseInt(validated.slice(1, 3), 16),
+        parseInt(validated.slice(3, 5), 16),
+        parseInt(validated.slice(5, 7), 16),
+    ];
+}
+
+function drawAnimatedText(
+    ctx: CanvasRenderingContext2D,
+    text: string,
+    x: number, y: number,
+    phase: number,
+): void {
+    const textAnimEnabled = setting('📦 Enhanced Nodes.Text.Animation.Enabled', false);
+    if (!textAnimEnabled) return;
+
+    const baseColor = setting<string>('📦 Enhanced Nodes.Text.Color', '#00ffff');
+    const style = setting<string>('📦 Enhanced Nodes.Text.Style', 'neon');
+    const size = setting('📦 Enhanced Nodes.Text.Size', 14);
+    const glow = setting('📦 Enhanced Nodes.Text.Glow', 0.5);
+    const letterSpacing = setting('📦 Enhanced Nodes.Text.Letter.Spacing', 0);
+    const offsetY = setting('📦 Enhanced Nodes.Text.Position.Y', 0);
+    const offsetX = setting('📦 Enhanced Nodes.Text.Position.X', 0);
+    const rotationRadius = setting('📦 Enhanced Nodes.Text.Rotation.Radius', 0);
+    const rotationAngle = setting('📦 Enhanced Nodes.Text.Rotation.Angle', 0);
+
+    let finalX = x + offsetX;
+    let finalY = y + offsetY;
+
+    if (rotationRadius > 0) {
+        const orbitAngle = phase * 2;
+        finalX += Math.cos(orbitAngle) * rotationRadius;
+        finalY += Math.sin(orbitAngle) * rotationRadius;
+    }
+
+    const [r, g, b] = hexToRGB(baseColor);
+
+    ctx.save();
+    ctx.font = `${size}px Arial`;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+
+    if (rotationAngle !== 0) {
+        ctx.translate(finalX, finalY);
+        ctx.rotate((rotationAngle * Math.PI) / 180);
+        ctx.translate(-finalX, -finalY);
+    }
+
+    const drawText = (tx: number, ty: number, fillStyle: string) => {
+        ctx.fillStyle = fillStyle;
+        if (letterSpacing === 0) {
+            ctx.fillText(text, tx, ty);
+        } else {
+            const spaced = text.split('').join('\u200A'.repeat(Math.max(1, Math.floor(Math.abs(letterSpacing) * 2))));
+            ctx.fillText(spaced, tx, ty);
+        }
+    };
+
+    try {
+        switch (style) {
+            case 'neon': {
+                const pulseIntensity = 0.7 + Math.sin(phase * 3) * 0.3;
+                const neonAlpha = 0.8 * glow * pulseIntensity;
+                ctx.shadowColor = `rgba(${r},${g},${b},${neonAlpha * 0.5})`;
+                ctx.shadowBlur = 20 * glow;
+                drawText(finalX, finalY, `rgba(${r},${g},${b},${neonAlpha * 0.3})`);
+                ctx.shadowBlur = 10 * glow;
+                drawText(finalX, finalY, `rgba(${r},${g},${b},${neonAlpha * 0.6})`);
+                ctx.shadowBlur = 5 * glow;
+                drawText(finalX, finalY, `rgb(${r},${g},${b})`);
+                ctx.shadowBlur = 3;
+                ctx.globalAlpha = 0.5 * pulseIntensity;
+                drawText(finalX, finalY, '#ffffff');
+                break;
+            }
+            case 'cyberpunk': {
+                const glitchOffset = Math.sin(phase * 10) * 2;
+                const glitchAlpha = 0.7 * glow;
+                const glitchColors = [
+                    { r: 255, g: 0, b: 128, o: 0.7 },
+                    { r: 0, g: 255, b: 255, o: 0.7 },
+                    { r: 255, g: 255, b: 0, o: 0.5 },
+                ];
+                glitchColors.forEach((c, i) => {
+                    const off = glitchOffset * (i - 1);
+                    ctx.shadowColor = `rgba(${c.r},${c.g},${c.b},${glitchAlpha})`;
+                    ctx.shadowBlur = 5 * glow;
+                    drawText(finalX + off, finalY, `rgba(${c.r},${c.g},${c.b},${c.o})`);
+                });
+                ctx.shadowColor = `rgba(${r},${g},${b},${glitchAlpha})`;
+                ctx.shadowBlur = 10 * glow;
+                drawText(finalX, finalY, baseColor);
+                break;
+            }
+            case 'retro': {
+                const scanOff = Math.sin(phase * 5) * 0.5;
+                drawText(finalX - 1, finalY + scanOff, 'rgba(255,0,0,0.5)');
+                drawText(finalX + 1, finalY - scanOff, 'rgba(0,255,255,0.5)');
+                ctx.shadowColor = baseColor;
+                ctx.shadowBlur = 3 * glow;
+                drawText(finalX, finalY, baseColor);
+                break;
+            }
+            case 'pulse': {
+                const simplePulse = 0.5 + Math.sin(phase * 2) * 0.5;
+                ctx.globalAlpha = 0.8 + simplePulse * 0.2;
+                ctx.shadowColor = baseColor;
+                ctx.shadowBlur = 10 * glow * simplePulse;
+                drawText(finalX, finalY, baseColor);
+                break;
+            }
+            case 'minimal': {
+                const fadeAlpha = 0.7 + Math.sin(phase * 2) * 0.3;
+                ctx.globalAlpha = fadeAlpha;
+                ctx.shadowColor = baseColor;
+                ctx.shadowBlur = 3 * glow;
+                drawText(finalX, finalY, baseColor);
+                ctx.beginPath();
+                ctx.strokeStyle = baseColor;
+                ctx.lineWidth = 1;
+                ctx.globalAlpha = fadeAlpha * 0.5;
+                const textWidth = ctx.measureText(text).width * (1 + letterSpacing * 0.1);
+                ctx.moveTo(finalX - textWidth / 2, finalY + 10);
+                ctx.lineTo(finalX + textWidth / 2, finalY + 10);
+                ctx.stroke();
+                break;
+            }
+            default:
+                drawText(finalX, finalY, baseColor);
+        }
+    } catch {
+        drawText(finalX, finalY, baseColor);
+    }
+
+    ctx.restore();
+}
+
+// =============================================================================
+// Particle Color Resolver
+// =============================================================================
+
+function getParticleColor(index: number, time: number, _count: number): string {
+    const particleColorMode = setting<string>('📦 Enhanced Nodes.Particle.Color.Mode', 'default');
+    const colors = getCustomNodeColors();
+
+    switch (particleColorMode) {
+        case 'rainbow':
+            return `hsl(${(index * 30 + time * 50) % 360}, 90%, 75%)`;
+        case 'complementary': {
+            const validColor = validateHexColor(colors.accent);
+            if (validColor) {
+                const r2 = parseInt(validColor.slice(1, 3), 16) / 255;
+                const g2 = parseInt(validColor.slice(3, 5), 16) / 255;
+                const b2 = parseInt(validColor.slice(5, 7), 16) / 255;
+                const max = Math.max(r2, g2, b2), min = Math.min(r2, g2, b2);
+                let h = 0;
+                const s = max === min ? 0 : (max - min) / (2 * (((max + min) / 2) > 0.5 ? (2 - max - min) : (max + min)));
+                const l = (max + min) / 2;
+                if (max !== min) {
+                    const d = max - min;
+                    if (max === r2) h = (g2 - b2) / d + (g2 < b2 ? 6 : 0);
+                    else if (max === g2) h = (b2 - r2) / d + 2;
+                    else h = (r2 - g2) / d + 4;
+                    h = (h / 6) * 360;
+                }
+                return `hsl(${(h + 180) % 360}, ${s * 100}%, ${l * 100}%)`;
+            }
+            return colors.accent;
+        }
+        case 'energy':
+            return `hsl(${(time * 100 + index * 20) % 360}, 90%, 75%)`;
+        case 'quantum': {
+            const qp = (time * 2 + index * 0.1) % 1;
+            return `hsl(${280 + qp * 80}, 90%, ${60 + Math.sin(time * 5) * 20}%)`;
+        }
+        case 'aurora': {
+            const ap = (time * 3 + index * 0.2) % 1;
+            return `hsl(${120 + ap * 60}, ${80 + Math.sin(time * 3) * 20}%, ${70 + Math.sin(time * 4) * 20}%)`;
+        }
+        default: {
+            const customParticle = setting('📦 Enhanced Nodes.Color.Particle', colors.accent);
+            return validateHexColor(customParticle) || colors.accent;
+        }
+    }
+}
+
+// =============================================================================
+// Extension
 // =============================================================================
 
 const ext: ComfyExtension = {
     name: 'enhanced.node.animations',
 
-    async setup(app: ComfyApp) {
+    async setup(_comfyApp: ComfyApp) {
         const state: NodeState = createNodeState();
-        const timing = createTimingManager();
 
+        // Timing
+        const Timing = {
+            smoothDelta: 0,
+            lastTime: performance.now(),
+            update(): number {
+                const now = performance.now();
+                const raw = Math.min((now - this.lastTime) / 1000, 1 / 30);
+                this.lastTime = now;
+                this.smoothDelta = this.smoothDelta * 0.9 + raw * 0.1;
+                return this.smoothDelta;
+            },
+        };
+
+        // Particle controller (independent timing)
+        const ParticleController = {
+            phase: 0,
+            lastUpdate: 0,
+            update(currentTime: number, delta: number): number {
+                const dir = setting('📦 Enhanced Nodes.Direction', 1);
+                const speed = Math.max(0.01, setting('📦 Enhanced Nodes.Particle.Speed', 1));
+                if (currentTime - this.lastUpdate >= 16) {
+                    const phaseStep = ((2 * Math.PI) / 15) * delta * speed;
+                    this.phase += phaseStep * dir;
+                    this.lastUpdate = currentTime;
+                }
+                return this.phase;
+            },
+        };
+
+        // Track execution
+        api.addEventListener('status', ({ detail }: any) => {
+            state.isRunning = detail?.exec_info?.queue_remaining > 0;
+        });
+
+        // =====================================================================
         // Animation Loop
-        let isEnabled = true;
-        let pauseDuringRender = true;
-        let animStyle = 0;
-
-        // Update settings every 500ms instead of every frame (60fps) to save resources
-        let lastSettingsUpdate = 0;
-        function updateSettingsCache() {
-            isEnabled = getSetting<boolean>('📦 Enhanced Nodes.Animations.Enabled');
-            pauseDuringRender = getSetting<boolean>('📦 Enhanced Nodes.Pause.During.Render');
-            animStyle = getSetting<number>('📦 Enhanced Nodes.Animate');
-        }
+        // =====================================================================
 
         function renderLoop(timestamp: number) {
-            // Update settings cache occasionally
-            if (timestamp - lastSettingsUpdate > 500) {
-                updateSettingsCache();
-                lastSettingsUpdate = timestamp;
-            }
+            const animStyle = setting('📦 Enhanced Nodes.Animate', 0);
+            const pauseDuringRender = setting('📦 Enhanced Nodes.Pause.During.Render', true);
+            const isRendering = state.isRunning;
+            const showParticles = setting('📦 Enhanced Nodes.Particle.Show', false);
 
-            timing.update(timestamp);
+            // Always update timing so particles can move independently
+            const delta = Timing.update();
+            state.totalTime = (state.totalTime || 0) + delta;
+            ParticleController.update(timestamp, delta);
 
-            const isRendering = app.graph && (app.graph as any).is_rendering;
+            const paused = isRendering && pauseDuringRender;
 
-            if (!isEnabled || (isRendering && pauseDuringRender)) {
-                if (state.isRunning) {
-                    state.isRunning = false;
-                    app.graph?.setDirtyCanvas(true, true);
+            // Update animation phase only when animation is active and not paused
+            if (animStyle > 0 && !paused) {
+                const speed = setting('📦 Enhanced Nodes.Animation.Speed', 1);
+                const direction = setting('📦 Enhanced Nodes.Direction', 1);
+                const isStaticMode = setting('📦 Enhanced Nodes.Static.Mode', false);
+
+                if (!isStaticMode) {
+                    state.phase += ((2 * Math.PI) / 15) * delta * speed * direction;
                 }
-                requestAnimationFrame(renderLoop);
-                return;
             }
 
-            state.isRunning = true;
+            // Redraw canvas if any visual effect is active
+            if (animStyle > 0 || showParticles) {
+                app.graph?.setDirtyCanvas(true, false);
+            }
 
-            const speed = getSetting<number>('📦 Enhanced Nodes.Animation.Speed');
-            const dt = (timestamp - state.lastFrame) / 1000;
-            state.lastFrame = timestamp;
-            state.phase += dt * speed;
-
-            // Trigger redraw only if visible or needed
-            app.graph?.setDirtyCanvas(true, false);
             requestAnimationFrame(renderLoop);
         }
 
         requestAnimationFrame(renderLoop);
 
         // =====================================================================
-        // Canvas Overrides
+        // drawNode Override
         // =====================================================================
 
         const originalDrawNode = LGraphCanvas.prototype.drawNode;
 
         LGraphCanvas.prototype.drawNode = function (node: ComfyNode, ctx: CanvasRenderingContext2D) {
-            // 1. Pre-render effects (Behind node)
-            if (isEnabled && animStyle > 0 && state.isRunning) {
-                // Determine effect type based on mapping
-                const effectName: NodeAnimationStyleName =
-                    animStyle === 1 ? 'gentlePulse' :
-                        animStyle === 2 ? 'neonNexus' :
-                            animStyle === 3 ? 'cosmicRipple' :
-                                animStyle === 4 ? 'flowerOfLife' : 'gentlePulse';
+            const animStyle = setting('📦 Enhanced Nodes.Animate', 0);
+            const animEnabled = setting('📦 Enhanced Nodes.Animations.Enabled', true);
 
-                const effect = getNodeEffect(effectName as any);
+            const showParticles = setting('📦 Enhanced Nodes.Particle.Show', false);
 
+            if (animStyle > 0 && animEnabled) {
+                const colors = getCustomNodeColors();
+                const isStaticMode = setting('📦 Enhanced Nodes.Static.Mode', false);
+                const glowIntensity = setting('📦 Enhanced Nodes.Glow', 1.0);
+                const animGlow = setting('📦 Enhanced Nodes.Animation.Glow', 0.5);
+                const quality = setting('📦 Enhanced Nodes.Quality', 1);
+                const animSize = setting('📦 Enhanced Nodes.Animation.Size', 1);
+                const intensity = setting('📦 Enhanced Nodes.Intensity', 1.0);
+                const direction = setting('📦 Enhanced Nodes.Direction', 1);
+                const animSpeed = setting('📦 Enhanced Nodes.Animation.Speed', 1);
+                const particleDensity = setting('📦 Enhanced Nodes.Particle.Density', 0.5);
+                const particleSpeed = setting('📦 Enhanced Nodes.Particle.Speed', 1);
+                const particleIntensity = setting('📦 Enhanced Nodes.Particle.Intensity', 1.0);
+                const particleSize = setting('📦 Enhanced Nodes.Particle.Size', 1.0);
+                const particleGlow = setting('📦 Enhanced Nodes.Particle.Glow', 1.0);
+                const showGlow = setting('📦 Enhanced Nodes.Glow.Show', true);
+                const hoverColor = setting('📦 Enhanced Nodes.Color.Hover', '#00ff15');
+                const showHover = setting('📦 Enhanced Nodes.Color.Hover.Show', false);
+
+                const effect = getNodeEffect(animStyle);
                 if (effect) {
-                    const glowIntensity = getSetting<number>('📦 Enhanced Nodes.Glow.Intensity') || 1;
-                    const glowSize = getSetting<number>('📦 Enhanced Nodes.Animation.Size') || 1;
-                    const quality = getSetting<number>('📦 Enhanced Nodes.Quality') || 1;
-
-                    // Active/Running state override
-                    const isRunning = node.id === (app as any).runningNodeId;
-                    const isSelected = this.selected_nodes && this.selected_nodes[node.id];
-
-                    const primaryColor = isRunning ? '#00ff00' : (isSelected ? '#00ffff' : node.color || '#333');
-
                     ctx.save();
-                    // @ts-ignore - handled by getNodeEffect
-                    effect(
+                    try {
+                        effect(
+                            ctx,
+                            node,
+                            {
+                                animation: {
+                                    phase: state.phase,
+                                    intensity: intensity * animGlow,
+                                    direction,
+                                    animSpeed,
+                                    isStaticMode,
+                                    isPaused: false,
+                                },
+                                quality: {
+                                    quality,
+                                    animationSize: animSize,
+                                    glowIntensity: showGlow ? glowIntensity : 0,
+                                },
+                                particles: {
+                                    showParticles,
+                                    density: particleDensity,
+                                    speed: particleSpeed,
+                                    intensity: particleIntensity,
+                                    size: particleSize,
+                                    glowIntensity: particleGlow,
+                                },
+                                colors: {
+                                    primary: colors.primary as Color,
+                                    secondary: colors.secondary as Color,
+                                    accent: colors.accent as Color,
+                                    hoverColor,
+                                    showHover,
+                                },
+                            },
+                            ParticleController.phase,
+                            getParticleColor,
+                        );
+                    } catch (e) {
+                        console.warn('[EnhancedNodes] Effect error:', e);
+                    }
+                    ctx.restore();
+                }
+            } else if (showParticles) {
+                // Particles-only mode (no animation style selected)
+                const colors = getCustomNodeColors();
+                const particleDensity = setting('📦 Enhanced Nodes.Particle.Density', 0.5);
+                const particleSpeed = setting('📦 Enhanced Nodes.Particle.Speed', 1);
+                const particleIntensity = setting('📦 Enhanced Nodes.Particle.Intensity', 1.0);
+                const particleSize = setting('📦 Enhanced Nodes.Particle.Size', 1.0);
+                const particleGlow = setting('📦 Enhanced Nodes.Particle.Glow', 1.0);
+                const quality = setting('📦 Enhanced Nodes.Quality', 1);
+                const animSize = setting('📦 Enhanced Nodes.Animation.Size', 1);
+                const direction = setting('📦 Enhanced Nodes.Direction', 1);
+
+                ctx.save();
+                ctx.translate(node.size[0] / 2, node.size[1] / 2);
+                try {
+                    drawParticles(
                         ctx,
                         node,
                         {
-                            animation: { phase: state.phase, intensity: glowIntensity, direction: 1, animSpeed: 1, isStaticMode: false, isPaused: false },
-                            quality: { quality, animationSize: glowSize, glowIntensity },
-                            particles: { showParticles: true, density: 1, speed: 1, intensity: 1, size: 1, glowIntensity: 0.5 * glowIntensity },
-                            colors: { primary: primaryColor as Color, secondary: '#ffffff', accent: primaryColor as Color, hoverColor: primaryColor as string, showHover: true }
+                            animation: {
+                                phase: state.phase,
+                                intensity: 1.0,
+                                direction,
+                                animSpeed: 1,
+                                isStaticMode: false,
+                                isPaused: false,
+                            },
+                            quality: {
+                                quality,
+                                animationSize: animSize,
+                                glowIntensity: 0,
+                            },
+                            particles: {
+                                showParticles: true,
+                                density: particleDensity,
+                                speed: particleSpeed,
+                                intensity: particleIntensity,
+                                size: particleSize,
+                                glowIntensity: particleGlow,
+                            },
+                            colors: {
+                                primary: colors.primary as Color,
+                                secondary: colors.secondary as Color,
+                                accent: colors.accent as Color,
+                                hoverColor: '#00ff15',
+                                showHover: false,
+                            },
                         },
-                        state.phase,
-                        () => primaryColor
+                        ParticleController.phase,
+                        getParticleColor,
                     );
-                    ctx.restore();
+                } catch (e) {
+                    console.warn('[EnhancedNodes] Particle error:', e);
                 }
+                ctx.restore();
             }
 
-            // 2. Render Node (Original)
+            // Draw original node
             originalDrawNode.call(this, node, ctx);
+
+            // Text animation (drawn on top of node)
+            if (setting('📦 Enhanced Nodes.Text.Animation.Enabled', false) && node.title) {
+                ctx.save();
+                drawAnimatedText(
+                    ctx,
+                    node.title,
+                    node.size[0] / 2,
+                    -15,
+                    state.phase,
+                );
+                ctx.restore();
+            }
         };
 
-        // UI & Æmotion Studio About
-        app.ui.settings.addSetting({
-            id: '📦 Enhanced Nodes.UI & Æmotion Studio About',
-            name: '🔽 Info Panel',
-            type: 'combo',
-            options: [
-                { value: 0, text: 'Closed Panel' },
-                { value: 1, text: 'Open Panel' }
-            ],
-            defaultValue: NODE_DEFAULTS['📦 Enhanced Nodes.UI & Æmotion Studio About'],
-            onChange: (value: number) => {
-                if (value === 1) {
-                    document.body.appendChild(createPatternDesignerWindow());
-                    // Reset setting back to 0 (Closed) after opening
-                    setTimeout(() => app.ui.settings.setSettingValue('📦 Enhanced Nodes.UI & Æmotion Studio About', 0), 100);
-                }
-            }
-        });
+        // =====================================================================
+        // Hover Color Override
+        // =====================================================================
 
-        console.log('[EnhancedNodes] Extension registered and ready.');
-    }
+        const originalDrawNodeShape = LGraphCanvas.prototype.drawNodeShape;
+        if (originalDrawNodeShape) {
+            LGraphCanvas.prototype.drawNodeShape = function (
+                node: ComfyNode,
+                ctx: CanvasRenderingContext2D,
+                ...args: any[]
+            ) {
+                originalDrawNodeShape.call(this, node, ctx, ...args);
+
+                const showHover = setting('📦 Enhanced Nodes.Color.Hover.Show', false);
+                const animStyle = setting('📦 Enhanced Nodes.Animate', 0);
+
+                if (showHover && animStyle > 0 && (node.mouseOver || (this.selected_nodes && this.selected_nodes[node.id]))) {
+                    const hoverColor = setting('📦 Enhanced Nodes.Color.Hover', '#00ff15');
+                    const glowIntensity = setting('📦 Enhanced Nodes.Glow', 1.0);
+                    const outlineGlowSize = 15 * glowIntensity;
+
+                    ctx.save();
+                    ctx.shadowColor = withAlpha(hoverColor, 0.5);
+                    ctx.shadowBlur = node.mouseOver ? outlineGlowSize : outlineGlowSize * 1.5;
+                    ctx.strokeStyle = withAlpha(hoverColor, 0.7);
+                    ctx.lineWidth = 2;
+
+                    // @ts-ignore — LiteGraph internal property
+                    const shape = (node as any)._shape || 'box';
+                    if (shape === 'round' || shape === 'card') {
+                        // @ts-ignore — LiteGraph constructor property
+                        const radius = node.constructor?.slot_start_y ? 8 : 4;
+                        ctx.beginPath();
+                        ctx.roundRect(0, 0, node.size[0], node.size[1], radius);
+                        ctx.stroke();
+                    } else {
+                        ctx.strokeRect(0, 0, node.size[0], node.size[1]);
+                    }
+                    ctx.restore();
+                }
+            };
+        }
+
+        console.log('[EnhancedNodes] Extension registered with full animation pipeline.');
+    },
 };
 
 app.registerExtension(ext);

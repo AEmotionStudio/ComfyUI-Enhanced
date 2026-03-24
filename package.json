@@ -1,6 +1,6 @@
 {
   "name": "comfyui-enhancedlinksandnodes",
-  "version": "1.0.2",
+  "version": "2.0.0",
   "description": "A visually stunning extension for ComfyUI that adds beautiful, customizable animations to both links and nodes in your workflow.",
   "type": "module",
   "scripts": {
