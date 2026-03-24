@@ -47,9 +47,9 @@ npm-debug.log*
 pnpm-debug.log*
 
 # Docs
-Browser_Console_Errors.md
+docs/Browser_Console_Errors.md
+docs/DEVELOPMENT.md
 errors.md
-DEVELOPMENT.md
 
 # Legacy source files
 old_link_animations.js
