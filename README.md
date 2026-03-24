@@ -5,7 +5,7 @@
 **A visually stunning extension for ComfyUI that adds beautiful, customizable animations to both links and nodes in your workflow.**
 
 [![ComfyUI](https://img.shields.io/badge/ComfyUI-Extension-green?style=for-the-badge)](https://github.com/comfyanonymous/ComfyUI)
-[![Version](https://img.shields.io/badge/Version-2.0.0-orange?style=for-the-badge)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/Version-2.0.1-orange?style=for-the-badge)](CHANGELOG.md)
 [![License](https://img.shields.io/badge/License-MIT-red?style=for-the-badge)](LICENSE)
 [![Last Commit](https://img.shields.io/github/last-commit/AEmotionStudio/ComfyUI-EnhancedLinksandNodes?style=for-the-badge&label=Last%20Update&color=orange)](https://github.com/AEmotionStudio/ComfyUI-EnhancedLinksandNodes/commits)
 [![Activity](https://img.shields.io/github/commit-activity/m/AEmotionStudio/ComfyUI-EnhancedLinksandNodes?style=for-the-badge&label=Activity&color=yellow)](https://github.com/AEmotionStudio/ComfyUI-EnhancedLinksandNodes/commits)
@@ -26,7 +26,7 @@
 
 ---
 
-## What's New in v2.0.0
+## What's New in v2.0.1
 
 **Complete TypeScript Rewrite & Sidebar UI**
 

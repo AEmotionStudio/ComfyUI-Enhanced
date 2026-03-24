@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.0.1] - 2025-03-24
+
+### Fixed
+- **Registry Publish** — fixed node ID casing mismatch preventing ComfyUI Registry updates
+- **Gitignore** — fixed patterns for `docs/` files, removed tracked images folder
+- **Preview Images** — moved to GitHub Releases CDN for faster loading
+
+---
+
 ## [2.0.0] - 2025-03-24
 
 ### ✨ Major Rewrite — TypeScript Architecture
